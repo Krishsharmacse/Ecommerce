@@ -1,18 +1,20 @@
 import express from "express";
-import { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct } from "../controllers/product_controller.js";
-import { isAuthenticated, isAdmin } from "../middleware/auth_middleware.js";
+import {
+    createProduct, getAllProducts, getProductById,
+    updateProduct, deleteProduct, getMyProducts
+} from "../controllers/product_controller.js";
+import { isAuthenticated, isApprovedShopkeeper, isOwner } from "../middleware/auth_middleware.js";
 
 const router = express.Router();
 
-// Public Routes
+// ─── Manager (approved) or Owner ─────────────────────────
+router.get("/mine/list", isAuthenticated, isApprovedShopkeeper, getMyProducts);
+router.post("/create", isAuthenticated, isApprovedShopkeeper, createProduct);
+router.put("/update/:id", isAuthenticated, isApprovedShopkeeper, updateProduct);
+router.delete("/delete/:id", isAuthenticated, isApprovedShopkeeper, deleteProduct);
+
+// ─── Public ───────────────────────────────────────────────
 router.get("/all", getAllProducts);
 router.get("/:id", getProductById);
-
-// Protected Routes (Logged in users - admin only for CRUD)
-router.post("/create", isAuthenticated, isAdmin, createProduct);
-
-// Admin Only Routes
-router.put("/update/:id", isAuthenticated, isAdmin, updateProduct);
-router.delete("/delete/:id", isAuthenticated, isAdmin, deleteProduct);
 
 export default router;
