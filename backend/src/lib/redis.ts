@@ -1,0 +1,1 @@
+export { redis, cache } from "../config/redis.js";

@@ -1,0 +1,1 @@
+export type ShopInput = { name: string; slug: string; description?: string; logoUrl?: string };
