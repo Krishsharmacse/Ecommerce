@@ -5,19 +5,18 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
-    const { isLoggedIn, isAdmin, isLoading } = useAuth();
+    const { authStatus, isAdmin } = useAuth();
 
     useEffect(() => {
-        if (!isLoading) {
-            if (!isLoggedIn) {
-                router.push('/login');
-            } else if (!isAdmin) {
-                router.push('/');
-            }
+        if (authStatus === 'loading') return;
+        if (authStatus === 'unauthenticated') {
+            router.replace('/login?redirect=/admin');
+        } else if (!isAdmin) {
+            router.replace('/');
         }
-    }, [isLoggedIn, isAdmin, isLoading, router]);
+    }, [authStatus, isAdmin, router]);
 
-    if (isLoading || !isLoggedIn || !isAdmin) {
+    if (authStatus === 'loading' || authStatus === 'unauthenticated' || !isAdmin) {
         return (
             <div className="page-loader" style={{ paddingTop: '70px' }}>
                 <div className="spinner spinner-primary spinner-lg" />

@@ -20,13 +20,13 @@ export class ProductRepository {
     };
 
     return Promise.all([
-      prisma.product.findMany({ where, orderBy: { createdAt: "desc" }, skip, take }),
+      prisma.product.findMany({ where, include: { images: true, category: true }, orderBy: { createdAt: "desc" }, skip, take }),
       prisma.product.count({ where })
     ]);
   }
 
   findById(id: string) {
-    return prisma.product.findUnique({ where: { id } });
+    return prisma.product.findUnique({ where: { id }, include: { images: true, category: true, shop: true } });
   }
 
   create(data: Prisma.ProductCreateInput) {

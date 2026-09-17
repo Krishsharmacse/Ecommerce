@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { authService } from '@/lib/auth';
 import toast from 'react-hot-toast';
@@ -13,8 +13,12 @@ function getPasswordStrength(password: string) {
     if (/[0-9]/.test(password)) score++;
     if (/[^A-Za-z0-9]/.test(password)) score++;
     const labels = ['', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
-    const classes = ['', 'weak', 'fair', 'good', 'strong', 'strong'];
-    return { score, label: labels[score] || 'Weak', class: classes[score] || 'weak' };
+    const colors = ['', 'bg-rose-500', 'bg-amber-500', 'bg-emerald-500', 'bg-[var(--primary)]', 'bg-[var(--primary)]'];
+    return {
+        score: Math.min(score, 4),
+        label: labels[score] || 'Weak',
+        color: colors[Math.min(score, 4)] || 'bg-[var(--border)]'
+    };
 }
 
 export default function ResetPasswordPage() {
@@ -36,7 +40,7 @@ export default function ResetPasswordPage() {
         else if (!/[A-Z]/.test(form.newPassword)) errs.newPassword = 'Include at least one uppercase letter';
         else if (!/[0-9]/.test(form.newPassword)) errs.newPassword = 'Include at least one number';
         else if (!/[^A-Za-z0-9]/.test(form.newPassword)) errs.newPassword = 'Include at least one special character';
-        if (!form.confirmPassword) errs.confirmPassword = 'Please confirm your password';
+        if (!form.confirmPassword) errs.confirmPassword = 'Confirm your password';
         else if (form.newPassword !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match';
         return errs;
     };
@@ -64,15 +68,15 @@ export default function ResetPasswordPage() {
             });
             if (res.success) {
                 setSuccess(true);
-                toast.success('Password reset successfully!');
-                setTimeout(() => router.push('/login'), 3000);
+                toast.success('Password updated successfully!');
+                setTimeout(() => router.push('/login'), 2500);
             } else {
                 setErrors({ general: res.message });
                 toast.error(res.message);
             }
         } catch (err: unknown) {
             const axiosError = err as { response?: { data?: { message?: string } } };
-            const msg = axiosError?.response?.data?.message || 'Reset failed';
+            const msg = axiosError?.response?.data?.message || 'Password reset failed';
             setErrors({ general: msg });
             toast.error(msg);
         } finally {
@@ -84,14 +88,20 @@ export default function ResetPasswordPage() {
 
     if (!token) {
         return (
-            <div className="auth-page">
-                <div className="auth-card" style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
-                    <h2 className="auth-title">Invalid Link</h2>
-                    <p className="auth-subtitle">This reset link is invalid or has expired.</p>
-                    <Link href="/forgot-password" className="btn btn-primary w-full" style={{ marginTop: '1.5rem' }}>
-                        Request New Link
-                    </Link>
+            <div className="min-h-[calc(100vh-var(--navbar-h))] flex items-center justify-center py-12 px-4">
+                <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 shadow-md text-center space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-rose-50 border border-rose-200 text-rose-600 grid place-items-center mx-auto text-2xl">
+                        ⚠️
+                    </div>
+                    <h2 className="heading-2 text-[var(--foreground)]">Invalid or Expired Link</h2>
+                    <p className="body-sm text-[var(--foreground-muted)]">
+                        This reset token is invalid or has expired. Please request a new link.
+                    </p>
+                    <div className="pt-2">
+                        <Link href="/forgot-password" className="btn btn--primary w-full justify-center">
+                            Request New Link
+                        </Link>
+                    </div>
                 </div>
             </div>
         );
@@ -99,102 +109,131 @@ export default function ResetPasswordPage() {
 
     if (success) {
         return (
-            <div className="auth-page">
-                <div className="auth-card" style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '4rem', marginBottom: '1rem', animation: 'float 2s ease-in-out infinite' }}>🎉</div>
-                    <h2 className="auth-title">Password Reset!</h2>
-                    <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                        Your password has been updated. Redirecting to login...
+            <div className="min-h-[calc(100vh-var(--navbar-h))] flex items-center justify-center py-12 px-4">
+                <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 shadow-md text-center space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 grid place-items-center mx-auto text-2xl">
+                        ✓
+                    </div>
+                    <h2 className="heading-2 text-[var(--foreground)]">Password Updated</h2>
+                    <p className="body-sm text-[var(--foreground-muted)]">
+                        Your password has been changed successfully. Redirecting to sign in...
                     </p>
-                    <div className="spinner spinner-primary spinner-lg" style={{ margin: '1.5rem auto 0' }} />
+                    <div className="pt-2">
+                        <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto" />
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="auth-page">
-            <div className="auth-card">
-                <div className="auth-header">
-                    <div className="auth-icon">🔐</div>
-                    <h1 className="auth-title">Reset Password</h1>
-                    <p className="auth-subtitle">Create a new secure password</p>
+        <div className="min-h-[calc(100vh-var(--navbar-h))] flex items-center justify-center py-12 px-4">
+            <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 md:p-10 shadow-md space-y-6">
+                {/* Header */}
+                <div className="text-center space-y-1.5">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--surface-sunken)] border border-[var(--border)] grid place-items-center mx-auto mb-3 text-lg">
+                        🔐
+                    </div>
+                    <h1 className="heading-2 text-[var(--foreground)]">Set new password</h1>
+                    <p className="body-sm text-[var(--foreground-muted)]">
+                        Create a secure, fresh password for your account.
+                    </p>
                 </div>
 
-                {errors.general && <div className="alert alert-error mb-4">⚠ {errors.general}</div>}
+                {errors.general && (
+                    <div className="alert alert--error">
+                        <span>{errors.general}</span>
+                    </div>
+                )}
 
-                <form className="auth-form" onSubmit={handleSubmit} noValidate>
-                    <div className="form-group">
-                        <label className="form-label">New Password</label>
-                        <div className="form-input-wrapper">
-                            <span className="form-input-icon">🔒</span>
+                <form onSubmit={handleSubmit} noValidate className="space-y-4">
+                    <div className="field">
+                        <label className="field__label" htmlFor="reset-new-password">New password</label>
+                        <div className="input-group">
                             <input
                                 id="reset-new-password"
                                 type={showNew ? 'text' : 'password'}
                                 name="newPassword"
-                                className={`form-input ${errors.newPassword ? 'error' : ''}`}
-                                placeholder="Enter new password"
                                 value={form.newPassword}
                                 onChange={handleChange}
+                                placeholder="Enter new password"
+                                className="input"
+                                aria-invalid={!!errors.newPassword}
                                 autoComplete="new-password"
-                                style={{ paddingRight: '2.75rem' }}
                             />
-                            <button type="button" className="form-input-toggle" onClick={() => setShowNew(!showNew)} tabIndex={-1}>
-                                {showNew ? '🙈' : '👁'}
+                            <button
+                                type="button"
+                                onClick={() => setShowNew(!showNew)}
+                                className="input-group__action text-xs font-medium"
+                            >
+                                {showNew ? 'Hide' : 'Show'}
                             </button>
                         </div>
-                        {errors.newPassword && <span className="form-error">⚠ {errors.newPassword}</span>}
+                        {errors.newPassword && <span className="field__error">{errors.newPassword}</span>}
+
                         {form.newPassword && (
-                            <div className="password-strength">
-                                <div className="password-strength-bars">
-                                    {[1, 2, 3, 4].map(l => (
-                                        <div key={l} className={`strength-bar ${strength.score >= l ? strength.class : ''}`} />
+                            <div className="space-y-1.5 mt-2">
+                                <div className="grid grid-cols-4 gap-1 h-1">
+                                    {[1, 2, 3, 4].map(idx => (
+                                        <div
+                                            key={idx}
+                                            className={`rounded-full transition-all duration-300 ${
+                                                strength.score >= idx ? strength.color : 'bg-[var(--border-subtle)]'
+                                            }`}
+                                        />
                                     ))}
                                 </div>
-                                <span className={`text-sm strength-label-${strength.class}`}>
-                                    Strength: <strong>{strength.label}</strong>
+                                <span className="text-[11px] text-[var(--foreground-muted)]">
+                                    Strength: <strong className="text-[var(--foreground)]">{strength.label}</strong>
                                 </span>
                             </div>
                         )}
                     </div>
 
-                    <div className="form-group">
-                        <label className="form-label">Confirm New Password</label>
-                        <div className="form-input-wrapper">
-                            <span className="form-input-icon">🔒</span>
+                    <div className="field">
+                        <label className="field__label" htmlFor="reset-confirm-password">Confirm new password</label>
+                        <div className="input-group">
                             <input
                                 id="reset-confirm-password"
                                 type={showConfirm ? 'text' : 'password'}
                                 name="confirmPassword"
-                                className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
-                                placeholder="Repeat new password"
                                 value={form.confirmPassword}
                                 onChange={handleChange}
+                                placeholder="Repeat new password"
+                                className="input"
+                                aria-invalid={!!errors.confirmPassword}
                                 autoComplete="new-password"
-                                style={{ paddingRight: '2.75rem' }}
                             />
-                            <button type="button" className="form-input-toggle" onClick={() => setShowConfirm(!showConfirm)} tabIndex={-1}>
-                                {showConfirm ? '🙈' : '👁'}
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirm(!showConfirm)}
+                                className="input-group__action text-xs font-medium"
+                            >
+                                {showConfirm ? 'Hide' : 'Show'}
                             </button>
                         </div>
-                        {errors.confirmPassword && <span className="form-error">⚠ {errors.confirmPassword}</span>}
+                        {errors.confirmPassword && <span className="field__error">{errors.confirmPassword}</span>}
                         {form.confirmPassword && !errors.confirmPassword && form.newPassword === form.confirmPassword && (
-                            <span className="form-error" style={{ color: 'var(--success)' }}>✓ Passwords match</span>
+                            <span className="text-[11px] text-emerald-600 font-medium mt-1 inline-block">
+                                ✓ Passwords match
+                            </span>
                         )}
                     </div>
 
                     <button
                         id="reset-submit"
                         type="submit"
-                        className={`btn btn-primary w-full btn-lg ${loading ? 'btn-loading' : ''}`}
                         disabled={loading}
+                        className={`btn btn--primary btn--lg w-full justify-center ${loading ? 'btn--loading' : ''}`}
                     >
-                        {loading ? (<><span className="spinner" /> Resetting...</>) : 'Reset Password'}
+                        {loading ? 'Updating password...' : 'Update Password'}
                     </button>
                 </form>
 
-                <div className="auth-footer">
-                    <Link href="/login" className="auth-link">← Back to Login</Link>
+                <div className="text-center text-xs text-[var(--foreground-muted)] pt-2 border-t border-[var(--border-subtle)]">
+                    <Link href="/login" className="text-[var(--primary)] font-medium hover:underline">
+                        ← Back to Sign in
+                    </Link>
                 </div>
             </div>
         </div>

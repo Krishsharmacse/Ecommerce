@@ -26,6 +26,18 @@ enum ShopStatus {
   REJECTED
 }
 
+enum ShopRequestType {
+  OPEN_SHOP
+  DELETE_SHOP
+}
+
+enum ShopRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
 enum ProductStatus {
   DRAFT
   ACTIVE
@@ -115,6 +127,7 @@ model User {
   orders          Order[]
   idempotencyKeys IdempotencyKey[]
   notifications   Notification[]
+  shopRequests    ShopRequest[]    @relation("VendorShopRequests")
 
   @@index([role])
   @@index([isActive])
@@ -183,6 +196,7 @@ model Shop {
   members     ShopMember[]
   products    Product[]
   orderItems  OrderItem[]
+  requests    ShopRequest[]
 
   @@index([ownerId])
   @@index([status])
@@ -435,5 +449,36 @@ model Notification {
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([createdAt])
+}
+
+model ShopRequest {
+  id           String            @id @default(cuid())
+  type         ShopRequestType
+  status       ShopRequestStatus @default(PENDING)
+  vendorId     String
+  shopId       String?
+  shopName     String
+  slug         String?
+  category     String?
+  description  String?
+  logoUrl      String?
+  email        String?
+  phone        String?
+  address      String?
+  reason       String?
+  adminNotes   String?
+  reviewedAt   DateTime?
+  reviewedById String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  vendor       User              @relation("VendorShopRequests", fields: [vendorId], references: [id], onDelete: Cascade)
+  shop         Shop?             @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([vendorId])
+  @@index([shopId])
+  @@index([status])
+  @@index([type])
   @@index([createdAt])
 }

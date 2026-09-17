@@ -4,6 +4,7 @@ import { createPaymentOrder, paymentWebhook, requestRefund, verifyPayment } from
 
 export const paymentRoutes = Router();
 paymentRoutes.post("/webhook", paymentWebhook);
+paymentRoutes.post("/create-order", authenticate, createPaymentOrder);
 paymentRoutes.post("/:orderId/order", authenticate, createPaymentOrder);
 paymentRoutes.post("/verify", authenticate, verifyPayment);
 paymentRoutes.post("/:paymentId/refund", authenticate, requestRefund);

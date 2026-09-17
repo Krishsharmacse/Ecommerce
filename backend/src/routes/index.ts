@@ -20,3 +20,8 @@ apiRoutes.use("/notifications", notificationsRoutes);
 apiRoutes.use("/uploads", uploadsRoutes);
 apiRoutes.use("/orders", orderRoutes);
 apiRoutes.use("/payments", paymentRoutes);
+
+// Compatibility aliases for frontend clients
+apiRoutes.use("/user", usersRoutes);
+apiRoutes.use("/user", authRoutes);
+apiRoutes.use("/shop", shopsRoutes);

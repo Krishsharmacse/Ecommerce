@@ -1,6 +1,6 @@
 import { PaymentStatus, RefundStatus } from "@prisma/client";
 import { prisma } from "../../lib/prisma.js";
-import { enqueueRefund } from "../../queues/index.js";
+import { enqueueRefund } from "../../modules/queues/index.js";
 import { ConflictError, NotFoundError } from "../../lib/errors.js";
 import { RazorpayProvider } from "./providers/razorpay.provider.js";
 
@@ -14,6 +14,19 @@ export class RefundService {
     if (amountPaise <= 0 || amountPaise > payment.amountPaise) throw new ConflictError("Invalid refund amount");
     const existing = await prisma.refund.findUnique({ where: { idempotencyKey } });
     if (existing) return existing;
+
+    const existingRefunds = await prisma.refund.aggregate({
+      where: {
+        paymentId,
+        status: { not: RefundStatus.FAILED },
+      },
+      _sum: { amountPaise: true },
+    });
+    const alreadyRefunded = existingRefunds._sum.amountPaise ?? 0;
+    if (alreadyRefunded + amountPaise > payment.amountPaise) {
+      throw new ConflictError("Requested refund exceeds the remaining refundable payment balance");
+    }
+
     const refund = await prisma.refund.create({ data: { orderId: payment.orderId, paymentId, amountPaise, reason, idempotencyKey } });
     await enqueueRefund(refund.id);
     return refund;

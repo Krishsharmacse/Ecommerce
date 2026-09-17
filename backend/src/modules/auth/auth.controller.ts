@@ -4,8 +4,30 @@ import { forgotPasswordSchema, loginSchema, otpSchema, refreshSchema, registerSc
 
 const authService = new AuthService();
 
-export async function register(req: Request, res: Response, next: NextFunction): Promise<void> { try { res.status(201).json({ success: true, ...(await authService.register(registerSchema.parse(req.body))) }); } catch (error) { next(error); } }
-export async function login(req: Request, res: Response, next: NextFunction): Promise<void> { try { res.json({ success: true, ...(await authService.login(loginSchema.parse(req.body))) }); } catch (error) { next(error); } }
+export async function register(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const result = await authService.register(registerSchema.parse(req.body));
+    res.status(201).json({
+      success: true,
+      ...result,
+      token: result.tokens.accessToken,
+      accessToken: result.tokens.accessToken,
+      refreshToken: result.tokens.refreshToken,
+    });
+  } catch (error) { next(error); }
+}
+export async function login(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const result = await authService.login(loginSchema.parse(req.body));
+    res.json({
+      success: true,
+      ...result,
+      token: result.tokens.accessToken,
+      accessToken: result.tokens.accessToken,
+      refreshToken: result.tokens.refreshToken,
+    });
+  } catch (error) { next(error); }
+}
 export async function refresh(req: Request, res: Response, next: NextFunction): Promise<void> { try { const { refreshToken } = refreshSchema.parse(req.body); res.json({ success: true, tokens: await authService.refresh(refreshToken) }); } catch (error) { next(error); } }
 export async function logout(req: Request, res: Response, next: NextFunction): Promise<void> { try { const { refreshToken } = refreshSchema.parse(req.body); await authService.logout(refreshToken); res.status(204).send(); } catch (error) { next(error); } }
 export async function forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> { try { const { email } = forgotPasswordSchema.parse(req.body); await authService.requestPasswordReset(email); res.json({ success: true, message: "If the account exists, reset instructions were sent" }); } catch (error) { next(error); } }

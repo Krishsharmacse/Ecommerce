@@ -1,5 +1,5 @@
 import { Worker } from "bullmq";
-import { redis } from "../lib/redis.js";
+import { redis } from "../config/redis.js";
 import { logger } from "../lib/logger.js";
 import { RefundService } from "../modules/payments/refund.service.js";
 

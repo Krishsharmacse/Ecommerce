@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { UserRole } from "@prisma/client";
 import { authenticate, requireRoles } from "../../middleware/auth.middleware.js";
-import { createProduct, deleteProduct, getProduct, listProducts, updateProduct } from "./product.controller.js";
+import { createProduct, deleteProduct, getProduct, listCategories, listProducts, updateProduct } from "./product.controller.js";
 
 export const productRoutes = Router();
 productRoutes.get("/", listProducts);
+productRoutes.get("/categories", listCategories);
 productRoutes.get("/:id", getProduct);
 productRoutes.post("/", authenticate, requireRoles(UserRole.VENDOR, UserRole.ADMIN), createProduct);
 productRoutes.patch("/:id", authenticate, requireRoles(UserRole.VENDOR, UserRole.ADMIN), updateProduct);
+productRoutes.put("/:id", authenticate, requireRoles(UserRole.VENDOR, UserRole.ADMIN), updateProduct);
 productRoutes.delete("/:id", authenticate, requireRoles(UserRole.VENDOR, UserRole.ADMIN), deleteProduct);

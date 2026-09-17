@@ -5,7 +5,7 @@ import { ConflictError, UnauthorizedError, ValidationError } from "../../lib/err
 import { comparePassword, hashPassword, hashToken } from "../../utils/hash.js";
 import { addDays } from "../../utils/dates.js";
 import { OtpService } from "../../services/otp.service.js";
-import { enqueueEmail } from "../../queues/index.js";
+import { enqueueEmail } from "../../modules/queues/index.js";
 import type { AuthResponse, LoginInput, RegisterInput, TokenPair } from "./auth.types.js";
 
 const otpService = new OtpService();
@@ -31,13 +31,39 @@ export class AuthService {
     try { payload = verifyRefreshToken(refreshToken); } catch { throw new UnauthorizedError("Invalid refresh token"); }
     const tokenHash = hashToken(refreshToken);
     const stored = await prisma.refreshToken.findUnique({ where: { tokenHash }, include: { user: true } });
-    if (!stored || stored.revokedAt || stored.expiresAt < new Date() || stored.user.id !== payload.sub) throw new UnauthorizedError("Refresh token expired or revoked");
+    if (!stored || stored.expiresAt < new Date() || stored.user.id !== payload.sub) {
+      throw new UnauthorizedError("Refresh token expired or invalid");
+    }
+
+    // Reuse detection: If a revoked token is presented, invalidate ALL user sessions
+    if (stored.revokedAt) {
+      await prisma.refreshToken.updateMany({
+        where: { userId: stored.userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+      throw new UnauthorizedError("Refresh token reuse detected. All sessions have been terminated.");
+    }
+
     await prisma.refreshToken.update({ where: { id: stored.id }, data: { revokedAt: new Date() } });
     return this.issueTokens(stored.user.id, stored.user.role);
   }
 
   async logout(refreshToken: string): Promise<void> {
-    await prisma.refreshToken.updateMany({ where: { tokenHash: hashToken(refreshToken), revokedAt: null }, data: { revokedAt: new Date() } });
+    let payload;
+    try {
+      payload = verifyRefreshToken(refreshToken);
+    } catch {
+      throw new UnauthorizedError("Invalid refresh token");
+    }
+    const tokenHash = hashToken(refreshToken);
+    const stored = await prisma.refreshToken.findUnique({ where: { tokenHash } });
+    if (!stored || stored.userId !== payload.sub) {
+      throw new UnauthorizedError("Refresh token does not match active session");
+    }
+    await prisma.refreshToken.updateMany({
+      where: { id: stored.id, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
   }
 
   async requestPasswordReset(email: string): Promise<void> {
@@ -76,7 +102,17 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private publicUser(user: { id: string; email: string; firstName: string; lastName: string; role: UserRole }) {
-    return { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role };
+  private publicUser(user: { id: string; email: string; firstName: string; lastName: string; role: UserRole; isEmailVerified?: boolean }) {
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      firstname: user.firstName,
+      lastname: user.lastName,
+      role: user.role,
+      isEmailVerified: user.isEmailVerified ?? false,
+      isverified: user.isEmailVerified ?? false,
+    };
   }
 }

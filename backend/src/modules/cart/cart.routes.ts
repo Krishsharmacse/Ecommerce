@@ -9,3 +9,4 @@ cartRoutes.post("/items", addCartItem);
 cartRoutes.patch("/items/:id", updateCartItem);
 cartRoutes.delete("/items/:id", removeCartItem);
 cartRoutes.delete("/clear", clearCart);
+cartRoutes.delete("/", clearCart);

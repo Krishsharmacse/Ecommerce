@@ -26,6 +26,10 @@ const envSchema = z.object({
   SHIPROCKET_PASSWORD: z.string().optional(),
   SHIPROCKET_API_URL: z.string().url().default("https://apiv2.shiprocket.in/v1/external"),
   CORS_ORIGINS: z.string().default("http://localhost:3000"),
+  FRONTEND_URL: z.string().default("http://localhost:3000"),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_REDIRECT_URI: z.string().url().optional(),
   UPLOAD_DIR: z.string().default("uploads")
 });
 

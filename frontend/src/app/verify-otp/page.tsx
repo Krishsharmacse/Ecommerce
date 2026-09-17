@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { authService } from '@/lib/auth';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
@@ -56,7 +57,7 @@ export default function VerifyOTPPage() {
     const handleVerify = async () => {
         const otpString = otp.join('');
         if (otpString.length !== 6) {
-            toast.error('Please enter the complete 6-digit OTP');
+            toast.error('Please enter the complete 6-digit code');
             return;
         }
         if (!email) {
@@ -71,9 +72,9 @@ export default function VerifyOTPPage() {
             if (res.success) {
                 setVerified(true);
                 refreshUser();
-                toast.success('Email verified successfully! 🎉');
+                toast.success('Email verified successfully!');
                 localStorage.removeItem('pendingVerifyEmail');
-                setTimeout(() => router.push('/shop'), 2000);
+                setTimeout(() => router.push('/shop'), 1800);
             } else {
                 toast.error(res.message);
             }
@@ -87,14 +88,14 @@ export default function VerifyOTPPage() {
 
     const handleResend = async () => {
         if (!email) {
-            toast.error('No email found');
+            toast.error('No email address found');
             return;
         }
         setResendLoading(true);
         try {
             const res = await authService.resendOTP(email);
             if (res.success) {
-                toast.success('New OTP sent to your email!');
+                toast.success('New verification code sent');
                 setCountdown(60);
                 setOtp(['', '', '', '', '', '']);
                 inputRefs.current[0]?.focus();
@@ -102,7 +103,7 @@ export default function VerifyOTPPage() {
                 toast.error(res.message);
             }
         } catch {
-            toast.error('Failed to resend OTP');
+            toast.error('Failed to resend code');
         } finally {
             setResendLoading(false);
         }
@@ -110,39 +111,45 @@ export default function VerifyOTPPage() {
 
     if (verified) {
         return (
-            <div className="auth-page">
-                <div className="auth-card" style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '4rem', marginBottom: '1rem', animation: 'float 2s ease-in-out infinite' }}>✅</div>
-                    <h2 className="auth-title">Verified!</h2>
-                    <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-                        Your email has been verified. Redirecting to shop...
+            <div className="min-h-[calc(100vh-var(--navbar-h))] flex items-center justify-center py-12 px-4">
+                <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 shadow-md text-center space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 grid place-items-center mx-auto text-2xl">
+                        ✓
+                    </div>
+                    <h2 className="heading-2 text-[var(--foreground)]">Email Verified</h2>
+                    <p className="body-sm text-[var(--foreground-muted)]">
+                        Your account is ready. Redirecting to the catalog...
                     </p>
-                    <div className="spinner spinner-primary spinner-lg" style={{ margin: '1.5rem auto 0' }} />
+                    <div className="pt-2">
+                        <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto" />
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="auth-page">
-            <div className="auth-card">
-                <div className="auth-header">
-                    <div className="auth-icon">📬</div>
-                    <h1 className="auth-title">Verify Email</h1>
-                    <p className="auth-subtitle">
-                        Enter the 6-digit OTP sent to{' '}
-                        <strong style={{ color: 'var(--primary-light)' }}>
-                            {email || 'your email'}
-                        </strong>
+        <div className="min-h-[calc(100vh-var(--navbar-h))] flex items-center justify-center py-12 px-4">
+            <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 md:p-10 shadow-md space-y-6">
+                {/* Header */}
+                <div className="text-center space-y-1.5">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--surface-sunken)] border border-[var(--border)] grid place-items-center mx-auto mb-3 text-lg">
+                        ✉️
+                    </div>
+                    <h1 className="heading-2 text-[var(--foreground)]">Verify your email</h1>
+                    <p className="body-sm text-[var(--foreground-muted)]">
+                        Enter the 6-digit code sent to{' '}
+                        <strong className="text-[var(--foreground)]">{email || 'your email'}</strong>
                     </p>
                 </div>
 
                 {!email && (
-                    <div className="form-group mb-4">
-                        <label className="form-label">Your Email</label>
+                    <div className="field">
+                        <label className="field__label" htmlFor="fallback-email">Email Address</label>
                         <input
+                            id="fallback-email"
                             type="email"
-                            className="form-input"
+                            className="input"
                             placeholder="Enter your email"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
@@ -150,8 +157,8 @@ export default function VerifyOTPPage() {
                     </div>
                 )}
 
-                {/* OTP Inputs */}
-                <div className="otp-inputs" onPaste={handlePaste} style={{ marginBottom: '1.5rem' }}>
+                {/* 6 Digit Inputs */}
+                <div className="flex items-center justify-between gap-2" onPaste={handlePaste}>
                     {otp.map((digit, index) => (
                         <input
                             key={index}
@@ -160,55 +167,47 @@ export default function VerifyOTPPage() {
                             type="text"
                             inputMode="numeric"
                             maxLength={1}
-                            className="otp-input"
                             value={digit}
                             onChange={e => handleOtpChange(index, e.target.value)}
                             onKeyDown={e => handleKeyDown(index, e)}
                             autoFocus={index === 0}
+                            className="w-12 h-14 text-center text-xl font-mono font-semibold bg-[var(--surface-sunken)] border border-[var(--border)] rounded-xl focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-all"
                         />
                     ))}
                 </div>
 
                 <button
                     id="verify-otp-submit"
-                    className={`btn btn-primary w-full btn-lg ${loading ? 'btn-loading' : ''}`}
+                    type="button"
                     onClick={handleVerify}
                     disabled={loading || otp.join('').length !== 6}
+                    className={`btn btn--primary btn--lg w-full justify-center ${loading ? 'btn--loading' : ''}`}
                 >
-                    {loading ? (
-                        <>
-                            <span className="spinner" />
-                            Verifying...
-                        </>
-                    ) : (
-                        'Verify OTP'
-                    )}
+                    {loading ? 'Verifying code...' : 'Confirm Verification'}
                 </button>
 
-                <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+                {/* Resend Section */}
+                <div className="text-center space-y-2 pt-2 border-t border-[var(--border-subtle)]">
                     {countdown > 0 ? (
-                        <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                            Resend OTP in <strong style={{ color: 'var(--primary-light)' }}>{countdown}s</strong>
+                        <p className="text-xs text-[var(--foreground-muted)]">
+                            Resend code in <strong className="text-[var(--foreground)]">{countdown}s</strong>
                         </p>
                     ) : (
                         <button
-                            className="btn btn-ghost btn-sm"
+                            type="button"
                             onClick={handleResend}
                             disabled={resendLoading}
+                            className="btn--link text-xs font-medium"
                         >
-                            {resendLoading ? (
-                                <><span className="spinner" style={{ borderTopColor: 'var(--primary)', borderColor: 'rgba(108,99,255,0.2)' }} /> Sending...</>
-                            ) : (
-                                '📧 Resend OTP'
-                            )}
+                            {resendLoading ? 'Sending new code...' : 'Didn’t receive code? Resend'}
                         </button>
                     )}
-                </div>
 
-                <div className="auth-footer">
-                    <a href="/login" className="auth-link">
-                        ← Back to Login
-                    </a>
+                    <div>
+                        <Link href="/login" className="text-xs text-[var(--foreground-muted)] hover:text-[var(--primary)] transition-colors">
+                            ← Back to Sign in
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>

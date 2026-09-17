@@ -39,82 +39,77 @@ export default function ForgotPasswordPage() {
 
     if (sent) {
         return (
-            <div className="auth-page">
-                <div className="auth-card" style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '4rem', marginBottom: '1rem', animation: 'float 2s ease-in-out infinite' }}>📧</div>
-                    <h2 className="auth-title">Check Your Email</h2>
-                    <p style={{ color: 'var(--text-muted)', marginTop: '0.75rem', lineHeight: 1.7 }}>
-                        We sent a password reset link to{' '}
-                        <strong style={{ color: 'var(--primary-light)' }}>{email}</strong>.
-                        The link expires in <strong>15 minutes</strong>.
-                    </p>
-                    <div
-                        style={{
-                            margin: '1.5rem 0',
-                            padding: '1rem',
-                            background: 'rgba(108,99,255,0.08)',
-                            border: '1px solid rgba(108,99,255,0.2)',
-                            borderRadius: '12px',
-                            fontSize: '0.85rem',
-                            color: 'var(--text-muted)',
-                        }}
-                    >
-                        💡 Tip: Check your spam folder if you don&apos;t see it.
+            <div className="min-h-[calc(100vh-var(--navbar-h))] flex items-center justify-center py-12 px-4">
+                <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 shadow-md text-center space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-[var(--surface-sunken)] border border-[var(--border)] grid place-items-center mx-auto text-2xl">
+                        ✉️
                     </div>
-                    <Link href="/login" className="btn btn-primary w-full">
-                        Back to Login
-                    </Link>
+                    <h2 className="heading-2 text-[var(--foreground)]">Check Your Email</h2>
+                    <p className="body-sm text-[var(--foreground-muted)] leading-relaxed">
+                        We sent a password reset link to <strong className="text-[var(--foreground)]">{email}</strong>.
+                        The link expires in 15 minutes.
+                    </p>
+                    <div className="p-3 bg-[var(--surface-sunken)] border border-[var(--border)] rounded-xl text-xs text-[var(--foreground-muted)]">
+                        Tip: Check your spam or promotions folder if you don&apos;t see the message.
+                    </div>
+                    <div className="pt-2">
+                        <Link href="/login" className="btn btn--primary w-full justify-center">
+                            Back to Sign in
+                        </Link>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="auth-page">
-            <div className="auth-card">
-                <div className="auth-header">
-                    <div className="auth-icon">🔐</div>
-                    <h1 className="auth-title">Forgot Password</h1>
-                    <p className="auth-subtitle">Enter your email to receive a reset link</p>
+        <div className="min-h-[calc(100vh-var(--navbar-h))] flex items-center justify-center py-12 px-4">
+            <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 md:p-10 shadow-md space-y-6">
+                {/* Header */}
+                <div className="text-center space-y-1.5">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--surface-sunken)] border border-[var(--border)] grid place-items-center mx-auto mb-3 text-lg">
+                        🔐
+                    </div>
+                    <h1 className="heading-2 text-[var(--foreground)]">Reset your password</h1>
+                    <p className="body-sm text-[var(--foreground-muted)]">
+                        Enter your email address and we&apos;ll send you instructions to reset your password.
+                    </p>
                 </div>
 
-                {error && <div className="alert alert-error mb-4">⚠ {error}</div>}
+                {error && (
+                    <div className="alert alert--error">
+                        <span>{error}</span>
+                    </div>
+                )}
 
-                <form className="auth-form" onSubmit={handleSubmit} noValidate>
-                    <div className="form-group">
-                        <label className="form-label">Email Address</label>
-                        <div className="form-input-wrapper">
-                            <span className="form-input-icon">✉</span>
-                            <input
-                                id="forgot-email"
-                                type="email"
-                                className={`form-input ${error ? 'error' : ''}`}
-                                placeholder="your@email.com"
-                                value={email}
-                                onChange={e => { setEmail(e.target.value); setError(''); }}
-                                autoComplete="email"
-                            />
-                        </div>
+                <form onSubmit={handleSubmit} noValidate className="space-y-4">
+                    <div className="field">
+                        <label className="field__label" htmlFor="forgot-email">Email address</label>
+                        <input
+                            id="forgot-email"
+                            type="email"
+                            value={email}
+                            onChange={e => { setEmail(e.target.value); setError(''); }}
+                            placeholder="name@example.com"
+                            className="input"
+                            autoComplete="email"
+                        />
                     </div>
 
                     <button
                         id="forgot-submit"
                         type="submit"
-                        className={`btn btn-primary w-full btn-lg ${loading ? 'btn-loading' : ''}`}
                         disabled={loading}
+                        className={`btn btn--primary btn--lg w-full justify-center ${loading ? 'btn--loading' : ''}`}
                     >
-                        {loading ? (
-                            <><span className="spinner" /> Sending Link...</>
-                        ) : (
-                            'Send Reset Link'
-                        )}
+                        {loading ? 'Sending link...' : 'Send Reset Link'}
                     </button>
                 </form>
 
-                <div className="auth-footer">
-                    Remember your password?{' '}
-                    <Link href="/login" className="auth-link">
-                        Sign In
+                <div className="text-center text-xs text-[var(--foreground-muted)] pt-2 border-t border-[var(--border-subtle)]">
+                    Remember your credentials?{' '}
+                    <Link href="/login" className="text-[var(--primary)] font-medium hover:underline">
+                        Sign in
                     </Link>
                 </div>
             </div>

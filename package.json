@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "rate-limit-redis": "^4.3.1"
-  }
-}

@@ -27,10 +27,10 @@ function Verify2FAContent() {
             const res = await twoFactorService.validate(tempToken, code.trim());
             if (res.success) {
                 await refreshUser();
-                toast.success(res.message || 'Verified! Welcome back 🎉');
+                toast.success(res.message || 'Identity confirmed. Welcome back.');
                 router.push('/shop');
             } else {
-                setError(res.message || 'Invalid code');
+                setError(res.message || 'Invalid code provided');
                 toast.error(res.message || 'Verification failed');
             }
         } catch (err: unknown) {
@@ -43,7 +43,6 @@ function Verify2FAContent() {
         }
     };
 
-    // Auto-format: 6 digits only (or 8 chars for backup code)
     const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value.replace(/\s/g, '');
         setCode(showBackup ? val.toUpperCase().slice(0, 8) : val.replace(/\D/g, '').slice(0, 6));
@@ -51,79 +50,75 @@ function Verify2FAContent() {
     };
 
     return (
-        <div className="auth-page">
-            <div className="auth-card">
-                <div className="auth-header">
-                    <div className="auth-icon" style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}>🛡️</div>
-                    <h1 className="auth-title">Two-Factor Authentication</h1>
-                    <p className="auth-subtitle">
+        <div className="min-h-[calc(100vh-var(--navbar-h))] flex items-center justify-center py-12 px-4">
+            <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-8 md:p-10 shadow-md space-y-6">
+                {/* Header */}
+                <div className="text-center space-y-1.5">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)] text-white font-bold grid place-items-center mx-auto mb-3 text-sm">
+                        🛡️
+                    </div>
+                    <h1 className="heading-2 text-[var(--foreground)]">Two-Factor Authentication</h1>
+                    <p className="body-sm text-[var(--foreground-muted)]">
                         {showBackup
-                            ? 'Enter one of your 8-character backup codes'
+                            ? 'Enter one of your 8-character single-use backup codes'
                             : 'Enter the 6-digit code from your authenticator app'}
                     </p>
                 </div>
 
                 {source === 'google' && (
-                    <div className="alert alert-info mb-4" style={{ fontSize: '0.85rem' }}>
-                        🔗 Signed in via Google — 2FA required as extra protection.
+                    <div className="alert alert--info">
+                        <span>Signed in via Google. Two-factor authentication required for this account.</span>
                     </div>
                 )}
 
                 {error && (
-                    <div className="alert alert-error mb-4">
-                        <span>⚠</span> {error}
+                    <div className="alert alert--error">
+                        <span>{error}</span>
                     </div>
                 )}
 
-                <form onSubmit={handleVerify} className="auth-form">
-                    <div className="form-group">
-                        <label className="form-label">
-                            {showBackup ? 'Backup Code' : 'Authenticator Code'}
+                <form onSubmit={handleVerify} className="space-y-4">
+                    <div className="field">
+                        <label className="field__label" htmlFor="totp-code">
+                            {showBackup ? 'Backup Code' : 'Security Code'}
                         </label>
-                        <div className="form-input-wrapper">
-                            <span className="form-input-icon">🔑</span>
-                            <input
-                                id="totp-code"
-                                type="text"
-                                className={`form-input ${error ? 'error' : ''}`}
-                                placeholder={showBackup ? 'XXXXXXXX' : '000 000'}
-                                value={showBackup ? code : code.replace(/(\d{3})(\d{1,3})/, '$1 $2')}
-                                onChange={handleCodeChange}
-                                autoFocus
-                                autoComplete="one-time-code"
-                                inputMode={showBackup ? 'text' : 'numeric'}
-                                style={{
-                                    fontSize: '1.5rem',
-                                    letterSpacing: '0.2em',
-                                    textAlign: 'center',
-                                    fontWeight: 700,
-                                    fontFamily: 'monospace',
-                                }}
-                            />
-                        </div>
+                        <input
+                            id="totp-code"
+                            type="text"
+                            value={showBackup ? code : code.replace(/(\d{3})(\d{1,3})/, '$1 $2')}
+                            onChange={handleCodeChange}
+                            placeholder={showBackup ? 'XXXXXXXX' : '000 000'}
+                            autoFocus
+                            autoComplete="one-time-code"
+                            inputMode={showBackup ? 'text' : 'numeric'}
+                            className="input text-center text-2xl font-mono tracking-widest font-semibold h-14"
+                        />
                     </div>
 
                     <button
                         id="verify-2fa-submit"
                         type="submit"
-                        className={`btn btn-primary w-full btn-lg ${loading ? 'btn-loading' : ''}`}
                         disabled={loading || code.length < (showBackup ? 8 : 6)}
+                        className={`btn btn--primary btn--lg w-full justify-center ${loading ? 'btn--loading' : ''}`}
                     >
-                        {loading ? <><span className="spinner" /> Verifying...</> : '✓ Verify & Sign In'}
+                        {loading ? 'Confirming code...' : 'Verify Identity'}
                     </button>
                 </form>
 
-                <div className="auth-divider">or</div>
+                <div className="auth__divider">or</div>
 
                 <button
-                    className="btn btn-secondary w-full"
+                    type="button"
                     onClick={() => { setShowBackup(!showBackup); setCode(''); setError(''); }}
+                    className="btn btn--secondary w-full justify-center"
                 >
-                    {showBackup ? '📱 Use authenticator app' : '🔑 Use a backup code'}
+                    {showBackup ? '📱 Use authenticator app' : '🔑 Use a backup recovery code'}
                 </button>
 
-                <div className="auth-footer" style={{ marginTop: '1.5rem' }}>
-                    <Link href="/login" className="auth-link">← Back to Login</Link>
+                <div className="text-center pt-2 border-t border-[var(--border-subtle)]">
+                    <Link href="/login" className="text-xs text-[var(--foreground-muted)] hover:text-[var(--primary)] transition-colors">
+                        ← Back to Sign in
+                    </Link>
                 </div>
             </div>
         </div>
@@ -133,10 +128,8 @@ function Verify2FAContent() {
 export default function Verify2FAPage() {
     return (
         <Suspense fallback={
-            <div className="auth-page">
-                <div className="auth-card" style={{ textAlign: 'center' }}>
-                    <div className="spinner spinner-primary spinner-lg" style={{ margin: '0 auto' }} />
-                </div>
+            <div className="min-h-[calc(100vh-var(--navbar-h))] flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
             </div>
         }>
             <Verify2FAContent />

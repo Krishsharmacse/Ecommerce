@@ -11,6 +11,7 @@ function CallbackContent() {
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
     useEffect(() => {
+        const ticket = params.get('ticket');
         const token = params.get('token');
         const error = params.get('error');
 
@@ -21,14 +22,11 @@ function CallbackContent() {
             return;
         }
 
-        if (token) {
-            localStorage.setItem('token', token);
-            // Fetch user profile with the token
+        const handleSuccess = () => {
             authService.getProfile()
                 .then(user => {
-                    localStorage.setItem('user', JSON.stringify(user));
                     setStatus('success');
-                    toast.success(`Welcome, ${user.firstname}! 🎉`);
+                    toast.success(`Welcome, ${user?.firstname || 'back'}! 🎉`);
                     setTimeout(() => router.push('/shop'), 1200);
                 })
                 .catch(() => {
@@ -36,6 +34,19 @@ function CallbackContent() {
                     toast.error('Could not load profile. Please try again.');
                     setTimeout(() => router.push('/login'), 2000);
                 });
+        };
+
+        if (ticket) {
+            authService.exchangeOAuthTicket(ticket)
+                .then(() => handleSuccess())
+                .catch(() => {
+                    setStatus('error');
+                    toast.error('OAuth ticket expired or already used.');
+                    setTimeout(() => router.push('/login'), 2000);
+                });
+        } else if (token) {
+            localStorage.setItem('token', token);
+            handleSuccess();
         } else {
             setStatus('error');
             router.push('/login');

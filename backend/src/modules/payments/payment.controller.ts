@@ -10,7 +10,8 @@ const refundService = new RefundService();
 
 export async function createPaymentOrder(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const orderId = z.string().cuid().parse(req.params.orderId);
+    const rawOrderId = req.params.orderId ?? req.body?.orderId;
+    const orderId = z.string().cuid().parse(rawOrderId);
     res.status(201).json({ success: true, payment: await paymentService.createOrder(req.user!.id, orderId) });
   } catch (error) { next(error); }
 }

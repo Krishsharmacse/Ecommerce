@@ -44,11 +44,21 @@ export class ProductService {
     });
   }
 
-  async update(userId: string, role: UserRole, id: string, data: Prisma.ProductUpdateInput) {
+  async update(userId: string, role: UserRole, id: string, data: Record<string, unknown>) {
     const product = await productRepository.findById(id);
     if (!product) throw new NotFoundError("Product not found");
     await this.assertShopAccess(userId, role, product.shopId);
-    const updated = await productRepository.update(id, data);
+
+    const { imageUrl, categoryId, ...rest } = data;
+    const updateData: Prisma.ProductUpdateInput = { ...rest };
+    if (typeof categoryId === "string") {
+      updateData.category = { connect: { id: categoryId } };
+    }
+    if (typeof imageUrl === "string") {
+      updateData.images = { create: { url: imageUrl } };
+    }
+
+    const updated = await productRepository.update(id, updateData);
     await cache.delete(`product:${id}`);
     return updated;
   }

@@ -1,1 +1,0 @@
-export { requireRoles as requireRole } from "./auth.middleware.js";

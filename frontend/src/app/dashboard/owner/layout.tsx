@@ -4,15 +4,17 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 export default function OwnerLayout({ children }: { children: React.ReactNode }) {
-    const { isLoggedIn, isOwner, isLoading } = useAuth();
+    const { authStatus, isOwner } = useAuth();
     const router = useRouter();
     useEffect(() => {
-        if (!isLoading) {
-            if (!isLoggedIn) router.push('/login');
-            else if (!isOwner) router.push('/');
+        if (authStatus === 'loading') return;
+        if (authStatus === 'unauthenticated') {
+            router.replace('/login?redirect=/dashboard/owner');
+        } else if (!isOwner) {
+            router.replace('/');
         }
-    }, [isLoggedIn, isOwner, isLoading, router]);
-    if (isLoading || !isLoggedIn || !isOwner) {
+    }, [authStatus, isOwner, router]);
+    if (authStatus === 'loading' || authStatus === 'unauthenticated' || !isOwner) {
         return <div className="page-loader"><div className="spinner spinner-lg" style={{ borderTopColor: '#f9a8d4' }} /><span style={{ color: '#f9a8d4' }}>Loading owner panel...</span></div>;
     }
     return <>{children}</>;

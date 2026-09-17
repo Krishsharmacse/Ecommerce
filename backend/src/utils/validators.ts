@@ -22,8 +22,19 @@ export const productQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20)
 });
 
+export const shippingAddressSchema = z.object({
+  fullName: z.string().trim().min(1).max(120),
+  phone: z.string().trim().min(7).max(20),
+  line1: z.string().trim().min(1).max(200),
+  line2: z.string().trim().max(200).optional(),
+  city: z.string().trim().min(1).max(80),
+  state: z.string().trim().min(1).max(80),
+  postalCode: z.string().trim().min(3).max(12),
+  country: z.string().trim().length(2).default("IN"),
+});
+
 export const createOrderSchema = z.object({
-  shippingAddress: z.record(z.unknown()),
+  shippingAddress: shippingAddressSchema,
   paymentMethod: z.enum(["RAZORPAY", "COD"]).default("RAZORPAY"),
   idempotencyKey: z.string().min(8).max(100).optional()
 });

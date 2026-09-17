@@ -1,5 +1,5 @@
 import { OtpPurpose } from "@prisma/client";
-import { cache } from "../lib/redis.js";
+import { cache } from "../config/redis.js";
 import { prisma } from "../lib/prisma.js";
 import { OTP_MAX_ATTEMPTS, OTP_TTL_SECONDS } from "../lib/constants.js";
 import { ConflictError, ValidationError } from "../lib/errors.js";
@@ -25,7 +25,14 @@ export class OtpService {
       await prisma.otp.update({ where: { id: otp.id }, data: { attempts: { increment: 1 } } });
       throw new ValidationError("OTP is invalid");
     }
-    await prisma.otp.update({ where: { id: otp.id }, data: { consumedAt: new Date() } });
+    // Atomic consumption: only succeeds if consumedAt is still null
+    const consumed = await prisma.otp.updateMany({
+      where: { id: otp.id, consumedAt: null },
+      data: { consumedAt: new Date() },
+    });
+    if (consumed.count === 0) {
+      throw new ValidationError("OTP has already been used");
+    }
     await cache.delete(`otp:${otp.id}`);
     void OTP_TTL_SECONDS;
   }

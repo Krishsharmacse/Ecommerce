@@ -1,5 +1,7 @@
 import { ConflictError, NotFoundError } from "../../lib/errors.js";
 import { OrderRepository } from "./order.repository.js";
+import { prisma } from "../../lib/prisma.js";
+import { wsPublish } from "../../lib/ws.js";
 
 const orderRepository = new OrderRepository();
 
@@ -19,9 +21,76 @@ export class OrderService {
     }
   }
 
-  async getById(userId: string, id: string) {
+  async list(userId: string, role: string) {
+    if (role === "ADMIN") {
+      return prisma.order.findMany({
+        include: { items: true, payments: true, shipment: true, address: true },
+        orderBy: { createdAt: "desc" },
+      });
+    }
+    if (role === "VENDOR") {
+      return prisma.order.findMany({
+        where: {
+          items: {
+            some: {
+              shop: { ownerId: userId },
+            },
+          },
+        },
+        include: { items: true, payments: true, shipment: true, address: true },
+        orderBy: { createdAt: "desc" },
+      });
+    }
+    return prisma.order.findMany({
+      where: { userId },
+      include: { items: true, payments: true, shipment: true, address: true },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  async getById(userId: string, role: string, id: string) {
     const order = await orderRepository.findById(id);
-    if (!order || order.userId !== userId) throw new NotFoundError("Order not found");
-    return order;
+    if (!order) throw new NotFoundError("Order not found");
+    if (role === "ADMIN" || order.userId === userId) return order;
+
+    if (role === "VENDOR") {
+      const vendorShop = await prisma.shop.findFirst({
+        where: { ownerId: userId, id: { in: order.items.map((i) => i.shopId) } },
+      });
+      if (vendorShop) return order;
+    }
+
+    throw new NotFoundError("Order not found");
+  }
+
+  async cancel(userId: string, role: string, id: string) {
+    const order = await prisma.order.findUnique({
+      where: { id },
+      include: { items: true },
+    });
+    // Throw NotFound to prevent IDOR enumeration
+    if (!order || (order.userId !== userId && role !== "ADMIN")) {
+      throw new NotFoundError("Order not found");
+    }
+
+    if (order.status !== "PENDING_PAYMENT" && order.status !== "CONFIRMED") {
+      throw new ConflictError("Order cannot be cancelled in its current state");
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      for (const item of order.items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
+        });
+      }
+      return tx.order.update({
+        where: { id },
+        data: { status: "CANCELLED" },
+      });
+    });
+
+    wsPublish(order.userId, "order.cancelled", { orderId: order.id });
+    return updated;
   }
 }
