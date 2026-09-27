@@ -4,6 +4,10 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { productService, Product } from '@/lib/products';
 import toast from 'react-hot-toast';
+import {
+    Heart, ShoppingBag, Zap, Check, Tag, MapPin, ShieldCheck,
+    Award, Star, Truck, ArrowRight, Package, Clock
+} from 'lucide-react';
 
 function addToCartDirect(product: Product, quantity: number): boolean {
     try {
@@ -122,7 +126,7 @@ export default function ProductDetailPage() {
             if (list.includes(product._id)) {
                 updated = list.filter(id => id !== product._id);
                 setIsWishlisted(false);
-                toast('Removed from saved items', { icon: '🤍' });
+                toast.success('Removed from wishlist');
             } else {
                 updated = [...list, product._id];
                 setIsWishlisted(true);
@@ -144,7 +148,7 @@ export default function ProductDetailPage() {
                 setPincodeChecked(true);
                 localStorage.setItem('shopvault_pincode', pincode.trim());
                 toast.success(`Delivery available to ${pincode.trim()}`);
-            }, 500);
+            }, 400);
         } else {
             toast.error('Please enter a valid 6-digit PIN code');
         }
@@ -171,27 +175,28 @@ export default function ProductDetailPage() {
     const displayName = product.name || product.productName || 'Curated Product';
     const isInStock = (product.stock ?? 0) > 0;
     const backendBase = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-    const rawImage = product.image
-        ? (product.image.startsWith('http') ? product.image : `${backendBase}${product.image}`)
-        : null;
+    
+    // Build real gallery from product
+    const gallery: string[] = [];
+    if (product.image) {
+        const url = product.image.startsWith('http') ? product.image : `${backendBase}${product.image}`;
+        gallery.push(url);
+    }
+    if (Array.isArray(product.images)) {
+        for (const item of product.images as unknown[]) {
+            const rawUrl = typeof item === 'string' ? item : (item as { url?: string })?.url;
+            if (rawUrl && typeof rawUrl === 'string') {
+                const url = rawUrl.startsWith('http') ? rawUrl : `${backendBase}${rawUrl}`;
+                if (!gallery.includes(url)) gallery.push(url);
+            }
+        }
+    }
 
-    // Gallery images
-    const gallery = [
-        rawImage,
-        'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&q=80',
-        'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=600&q=80',
-    ].filter(Boolean) as string[];
-
-    const activeImage = gallery[selectedImageIndex] || rawImage;
-
-    const originalPrice = Math.round(product.price * 1.25);
+    const activeImage = gallery[selectedImageIndex] || gallery[0] || null;
+    const originalPrice = product.originalPrice || Math.round(product.price * 1.25);
+    const hasDiscount = originalPrice > product.price;
     const savingsAmount = originalPrice - product.price;
-    const discountPercent = Math.round((savingsAmount / originalPrice) * 100);
-
-    const charCodeSum = (product._id || product.id || 'abc').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    const ratingScore = (4.0 + (charCodeSum % 10) / 10).toFixed(1);
-    const reviewCount = 85 + (charCodeSum % 450);
-    const ratingCount = reviewCount * 4 + 112;
+    const discountPercent = hasDiscount ? Math.round((savingsAmount / originalPrice) * 100) : 0;
 
     return (
         <div className="flex flex-col min-h-screen bg-[var(--background)]">
@@ -226,9 +231,7 @@ export default function ProductDetailPage() {
                                 className="absolute top-6 right-6 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur border border-white/10 flex items-center justify-center text-white transition-transform hover:scale-110 z-10 shadow-lg"
                                 aria-label="Save to wishlist"
                             >
-                                <svg className="w-5 h-5" viewBox="0 0 24 24" fill={isWishlisted ? '#ef4444' : 'none'} stroke={isWishlisted ? '#ef4444' : 'currentColor'} strokeWidth="2">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                                </svg>
+                                <Heart className={`w-5 h-5 transition-colors ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-white'}`} />
                             </button>
 
                             {/* Main Stage Image */}
@@ -240,7 +243,10 @@ export default function ProductDetailPage() {
                                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in"
                                     />
                                 ) : (
-                                    <div className="text-6xl text-[var(--foreground-muted)] opacity-50">📦</div>
+                                    <div className="flex flex-col items-center gap-2 text-[var(--foreground-muted)] opacity-50">
+                                        <Package className="w-16 h-16 stroke-[1.2]" />
+                                        <span className="text-xs font-mono uppercase tracking-wider">No Image</span>
+                                    </div>
                                 )}
                                 {!isInStock && (
                                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
@@ -268,7 +274,7 @@ export default function ProductDetailPage() {
                             )}
                         </div>
 
-                        {/* Quantity Selector & Dual CTA Buttons (Flipkart Style) */}
+                        {/* Quantity Selector & Dual CTA Buttons */}
                         {isInStock ? (
                             <div className="space-y-3 pt-2">
                                 <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-xs">
@@ -297,23 +303,23 @@ export default function ProductDetailPage() {
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    type="button"
-                                    onClick={handleAddToCart}
-                                    disabled={adding}
-                                    className="py-3.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-zinc-950 font-black text-sm uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2"
-                                >
-                                    <span>🛒</span>
-                                    <span>{adding ? 'Adding...' : 'Add to Cart'}</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleBuyNow}
-                                    className="py-3.5 px-4 rounded-xl bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white font-black text-sm uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 shadow-orange-600/25"
-                                >
-                                    <span>⚡</span>
-                                    <span>Buy Now</span>
-                                </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleAddToCart}
+                                        disabled={adding}
+                                        className="py-3.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-zinc-950 font-black text-sm uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2"
+                                    >
+                                        <ShoppingBag className="w-4 h-4" />
+                                        <span>{adding ? 'Adding...' : 'Add to Cart'}</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleBuyNow}
+                                        className="py-3.5 px-4 rounded-xl bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white font-black text-sm uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 shadow-orange-600/25"
+                                    >
+                                        <Zap className="w-4 h-4 fill-white" />
+                                        <span>Buy Now</span>
+                                    </button>
                                 </div>
                             </div>
                         ) : (
@@ -323,7 +329,7 @@ export default function ProductDetailPage() {
                         )}
                     </div>
 
-                    {/* ── RIGHT COLUMN: PRODUCT DETAILS & OFFERS (FLIPKART STYLE) ── */}
+                    {/* ── RIGHT COLUMN: PRODUCT DETAILS & OFFERS ── */}
                     <div className="lg:col-span-7 space-y-6">
 
                         {/* Title & Brand Header */}
@@ -331,7 +337,9 @@ export default function ProductDetailPage() {
                             <div className="flex items-center gap-2 text-xs text-[var(--foreground-muted)] uppercase tracking-wider font-semibold">
                                 <span>{product.category || 'Curated'}</span>
                                 <span>·</span>
-                                <span className="text-blue-400 font-bold">Assured ✦</span>
+                                <span className="text-blue-400 font-bold inline-flex items-center gap-1">
+                                    <Award className="w-3.5 h-3.5" /> Assured
+                                </span>
                             </div>
 
                             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-[var(--foreground)] leading-snug">
@@ -339,18 +347,22 @@ export default function ProductDetailPage() {
                             </h1>
 
                             {/* Ratings & Review Badge */}
-                            <div className="flex items-center gap-3 pt-1">
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-bold bg-emerald-700 text-white">
-                                    <span>{ratingScore}</span>
-                                    <span>★</span>
-                                </span>
-                                <span className="text-xs text-[var(--foreground-muted)] font-medium">
-                                    {ratingCount.toLocaleString('en-IN')} Ratings &amp; {reviewCount.toLocaleString('en-IN')} Reviews
-                                </span>
-                            </div>
+                            {product.rating ? (
+                                <div className="flex items-center gap-3 pt-1">
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-bold bg-emerald-700 text-white">
+                                        <span>{product.rating}</span>
+                                        <Star className="w-3 h-3 fill-white" />
+                                    </span>
+                                    {product.ratingCount && (
+                                        <span className="text-xs text-[var(--foreground-muted)] font-medium">
+                                            {product.ratingCount.toLocaleString('en-IN')} Ratings
+                                        </span>
+                                    )}
+                                </div>
+                            ) : null}
                         </div>
 
-                        {/* Price Block (Flipkart Style) */}
+                        {/* Price Block */}
                         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 space-y-2 shadow-sm">
                             <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-500">
                                 Special Price
@@ -359,41 +371,47 @@ export default function ProductDetailPage() {
                                 <span className="text-3xl font-black text-[var(--foreground)]">
                                     ₹{product.price.toLocaleString('en-IN')}
                                 </span>
-                                <span className="text-base text-[var(--foreground-muted)] line-through">
-                                    ₹{originalPrice.toLocaleString('en-IN')}
-                                </span>
-                                <span className="text-sm font-bold text-emerald-500">
-                                    {discountPercent}% off
-                                </span>
+                                {hasDiscount && (
+                                    <>
+                                        <span className="text-base text-[var(--foreground-muted)] line-through">
+                                            ₹{originalPrice.toLocaleString('en-IN')}
+                                        </span>
+                                        <span className="text-sm font-bold text-emerald-500">
+                                            {discountPercent}% off
+                                        </span>
+                                    </>
+                                )}
                             </div>
-                            <div className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
-                                <span>✓</span>
-                                <span>You will save ₹{savingsAmount.toLocaleString('en-IN')} on this order!</span>
-                            </div>
+                            {hasDiscount && (
+                                <div className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
+                                    <Check className="w-3.5 h-3.5" />
+                                    <span>You save ₹{savingsAmount.toLocaleString('en-IN')} on this order!</span>
+                                </div>
+                            )}
                         </div>
 
-                        {/* Available Offers & Discounts (Flipkart Style) */}
+                        {/* Available Offers & Discounts */}
                         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 space-y-3 shadow-sm">
                             <div className="text-xs font-bold uppercase tracking-wider text-[var(--foreground)] flex items-center gap-2">
-                                <span>🏷️</span> Available Offers
+                                <Tag className="w-3.5 h-3.5 text-blue-500" /> Available Offers
                             </div>
                             <ul className="space-y-2 text-xs text-[var(--foreground-secondary)]">
                                 <li className="flex items-start gap-2.5">
-                                    <span className="text-emerald-500 font-bold">🏷</span>
+                                    <Tag className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
                                     <div>
                                         <strong className="text-[var(--foreground)]">Bank Offer:</strong> 5% Unlimited Cashback on ShopVault Axis Bank Credit Card.{' '}
                                         <span className="text-blue-400 font-semibold cursor-pointer">T&amp;C</span>
                                     </div>
                                 </li>
                                 <li className="flex items-start gap-2.5">
-                                    <span className="text-emerald-500 font-bold">🏷</span>
+                                    <Tag className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
                                     <div>
                                         <strong className="text-[var(--foreground)]">Special Price:</strong> Get extra ₹300 off (price inclusive of cashback/coupon).{' '}
                                         <span className="text-blue-400 font-semibold cursor-pointer">T&amp;C</span>
                                     </div>
                                 </li>
                                 <li className="flex items-start gap-2.5">
-                                    <span className="text-emerald-500 font-bold">🏷</span>
+                                    <Tag className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
                                     <div>
                                         <strong className="text-[var(--foreground)]">Partner Offer:</strong> Buy this item &amp; get Flat ₹250 off on your next purchase.{' '}
                                         <span className="text-blue-400 font-semibold cursor-pointer">T&amp;C</span>
@@ -402,10 +420,10 @@ export default function ProductDetailPage() {
                             </ul>
                         </div>
 
-                        {/* Delivery Pincode Checker (Flipkart Style) */}
+                        {/* Delivery Pincode Checker */}
                         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 space-y-3 shadow-sm">
                             <div className="text-xs font-bold uppercase tracking-wider text-[var(--foreground)] flex items-center gap-2">
-                                <span>📍</span> Delivery Options
+                                <MapPin className="w-3.5 h-3.5 text-blue-500" /> Delivery Options
                             </div>
                             <form onSubmit={handleCheckPincode} className="flex items-center gap-2 max-w-sm">
                                 <input
@@ -427,11 +445,13 @@ export default function ProductDetailPage() {
                             {pincodeChecked && (
                                 <div className="space-y-1 text-xs text-[var(--foreground-secondary)] pt-1">
                                     <div className="flex items-center gap-2 text-emerald-400 font-semibold">
-                                        <span>⚡</span>
-                                        <span>Delivery by Tomorrow, 11:00 PM | Free ₹40</span>
+                                        <Truck className="w-3.5 h-3.5" />
+                                        <span>Delivery by Tomorrow, 11:00 PM | Free Delivery</span>
                                     </div>
-                                    <div className="text-[11px] text-[var(--foreground-muted)]">
-                                        Cash on Delivery available · 7 Days Replacement Policy
+                                    <div className="text-[11px] text-[var(--foreground-muted)] flex items-center gap-2">
+                                        <span>Cash on Delivery available</span>
+                                        <span>·</span>
+                                        <span>7 Days Replacement Policy</span>
                                     </div>
                                 </div>
                             )}
@@ -456,7 +476,9 @@ export default function ProductDetailPage() {
                                 </div>
                                 <div className="grid grid-cols-3 py-2.5">
                                     <span className="text-[var(--foreground-muted)]">Authenticity Guarantee</span>
-                                    <span className="col-span-2 font-medium text-[var(--foreground)]">100% Genuine with Escrow Safe Deposit</span>
+                                    <span className="col-span-2 font-medium text-[var(--foreground)] inline-flex items-center gap-1.5">
+                                        <ShieldCheck className="w-3.5 h-3.5 text-blue-500" /> 100% Genuine with Escrow Safe Deposit
+                                    </span>
                                 </div>
                                 <div className="grid grid-cols-3 py-2.5">
                                     <span className="text-[var(--foreground-muted)]">Domestic Warranty</span>
@@ -470,52 +492,18 @@ export default function ProductDetailPage() {
                             <div>
                                 <div className="text-[11px] text-[var(--foreground-muted)] uppercase tracking-wider">Seller Details</div>
                                 <div className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2 mt-0.5">
-                                    <span>TechVault Atelier</span>
-                                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-600/20 text-blue-400 font-semibold border border-blue-500/30">4.9 ★</span>
+                                    <span>Verified Atelier</span>
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-600/20 text-blue-400 font-semibold border border-blue-500/30 inline-flex items-center gap-0.5">
+                                        4.9 <Star className="w-2.5 h-2.5 fill-blue-400" />
+                                    </span>
                                 </div>
                                 <div className="text-[11px] text-[var(--foreground-muted)] mt-1">
                                     7 Days Replacement Policy · GST Invoice Available
                                 </div>
                             </div>
-                            <Link href="/shop" className="text-xs font-bold text-blue-400 hover:underline">
-                                See other sellers →
+                            <Link href="/shop" className="text-xs font-bold text-blue-400 hover:underline inline-flex items-center gap-1">
+                                See all items <ArrowRight className="w-3 h-3" />
                             </Link>
-                        </div>
-
-                        {/* Customer Ratings Breakdown (Flipkart Style) */}
-                        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 space-y-4 shadow-sm">
-                            <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--foreground)]">
-                                Ratings &amp; Reviews
-                            </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-center">
-                                <div className="text-center sm:text-left space-y-1">
-                                    <div className="text-4xl font-black text-[var(--foreground)] flex items-center justify-center sm:justify-start gap-1">
-                                        <span>{ratingScore}</span>
-                                        <span className="text-emerald-500 text-3xl">★</span>
-                                    </div>
-                                    <div className="text-xs text-[var(--foreground-muted)]">
-                                        {ratingCount.toLocaleString('en-IN')} Ratings &amp;<br />{reviewCount.toLocaleString('en-IN')} Reviews
-                                    </div>
-                                </div>
-
-                                <div className="sm:col-span-2 space-y-1.5 text-xs">
-                                    {[
-                                        { star: 5, pct: 72, color: 'bg-emerald-500' },
-                                        { star: 4, pct: 18, color: 'bg-emerald-600' },
-                                        { star: 3, pct: 6, color: 'bg-amber-500' },
-                                        { star: 2, pct: 2, color: 'bg-orange-500' },
-                                        { star: 1, pct: 2, color: 'bg-red-500' },
-                                    ].map((row) => (
-                                        <div key={row.star} className="flex items-center gap-2">
-                                            <span className="w-6 text-[var(--foreground-muted)] font-mono">{row.star}★</span>
-                                            <div className="flex-1 h-1.5 rounded-full bg-[var(--surface-elevated)] overflow-hidden">
-                                                <div className={`h-full rounded-full ${row.color}`} style={{ width: `${row.pct}%` }} />
-                                            </div>
-                                            <span className="w-8 text-right text-[10px] text-[var(--foreground-muted)] font-mono">{row.pct}%</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
                         </div>
 
                     </div>

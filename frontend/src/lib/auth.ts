@@ -25,6 +25,7 @@ export interface AuthResponse {
     requires2FA?: boolean;
     tempToken?: string;
     useGoogle?: boolean;
+    verification?: { otpId: string };
 }
 
 export function normalizeUser(raw: unknown): User | null {
@@ -80,6 +81,7 @@ export const authService = {
         return {
             ...res.data,
             user: normalized || res.data.user,
+            verification: res.data.verification,
         };
     },
 
@@ -104,7 +106,7 @@ export const authService = {
     },
 
     verifyOTP: async (data: { email: string; otp: string; otpId?: string; code?: string }): Promise<AuthResponse> => {
-        const res = await api.post('/auth/verify-otp', {
+        const res = await api.post('/auth/verify-email', {
             otpId: data.otpId || '',
             code: data.code || data.otp,
         });
@@ -112,7 +114,7 @@ export const authService = {
     },
 
     resendOTP: async (email: string): Promise<AuthResponse> => {
-        const res = await api.post('/auth/forgot-password', { email });
+        const res = await api.post('/auth/resend-verification', { email });
         return res.data;
     },
 

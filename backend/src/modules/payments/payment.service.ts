@@ -6,6 +6,7 @@ import { redis } from "../../config/redis.js";
 import { wsPublish } from "../../lib/ws.js";
 import { RazorpayProvider } from "./providers/razorpay.provider.js";
 import type { PaymentProvider } from "./providers/payment-provider.js";
+import { sendOrderConfirmationEmail } from "../../services/order-email.service.js";
 
 type RazorpayOrder = { id: string; amount: number; currency: string };
 
@@ -99,6 +100,7 @@ export class PaymentService {
 
       if (updated) {
         await enqueueOrderPaid(payment.orderId);
+        void sendOrderConfirmationEmail(payment.orderId);
         // Real-time push: payment captured
         wsPublish(userId, "payment.captured", {
           orderId:   payment.orderId,
@@ -187,6 +189,7 @@ export class PaymentService {
     ]);
 
     await enqueueOrderPaid(payment.orderId);
+    void sendOrderConfirmationEmail(payment.orderId);
     wsPublish(payment.order.userId, "payment.captured", { orderId: payment.orderId, razorpayPaymentId });
     logger.info({ orderId: payment.orderId }, "Webhook: payment.captured processed");
   }

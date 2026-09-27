@@ -1,9 +1,8 @@
 import crypto from "node:crypto";
-import fs from "node:fs/promises";
-import path from "node:path";
 import { azureBlobService, azureContainerName } from "../config/azure.js";
-import { env } from "../config/env.js";
+import { uploadBufferToCloudinary } from "../config/cloudinary.js";
 import { BadRequestError } from "../lib/errors.js";
+import { logger } from "../lib/logger.js";
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
@@ -54,8 +53,8 @@ function detectImageMime(buffer: Buffer): string | null {
 }
 
 export class StorageService {
-  async upload(buffer: Buffer, claimedMimeType: string): Promise<{ url: string; key: string }> {
-    if (buffer.byteLength > 5 * 1024 * 1024) throw new BadRequestError("Image must be 5MB or smaller");
+  async upload(buffer: Buffer, _claimedMimeType?: string): Promise<{ url: string; key: string }> {
+    if (buffer.byteLength > 10 * 1024 * 1024) throw new BadRequestError("Image must be 10MB or smaller");
 
     // Scan for dangerous script / SVG / XML payloads
     const headerString = buffer.subarray(0, 1024).toString("utf8").toLowerCase();
@@ -69,11 +68,29 @@ export class StorageService {
       throw new BadRequestError("Invalid file content: only genuine JPEG, PNG, WebP, and GIF images are permitted");
     }
 
-    // Determine extension solely from validated binary content
-    const extension = detectedMime === "image/jpeg" ? "jpg" : detectedMime.split("/")[1];
-    const key = `${crypto.randomUUID()}.${extension}`;
+    // Primary: Cloudinary Cloud Storage
+    const hasCloudinaryKey = process.env.CLOUDINARY_API_KEY || process.env.cloudinary_key || process.env.CLOUDINARY_KEY;
+    const hasCloudinarySecret = process.env.CLOUDINARY_API_SECRET || process.env.cloudinary_secret || process.env.CLOUDINARY_SECRET;
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.cloudinary_name || process.env.cloudinary_cloud_name;
 
+    if (hasCloudinaryKey && hasCloudinarySecret) {
+      if (!cloudName) {
+        throw new BadRequestError("Cloudinary cloud name is missing. Please set CLOUDINARY_CLOUD_NAME in your backend .env file.");
+      }
+      try {
+        const result = await uploadBufferToCloudinary(buffer, "shopvault/products");
+        logger.info({ url: result.url, publicId: result.publicId }, "Uploaded image to Cloudinary successfully");
+        return { url: result.url, key: result.publicId };
+      } catch (err: any) {
+        logger.error({ err }, "Cloudinary upload failed");
+        throw new BadRequestError(err?.message || "Failed to upload image to Cloudinary");
+      }
+    }
+
+    // Secondary: Azure Blob Storage
     if (azureBlobService) {
+      const extension = detectedMime === "image/jpeg" ? "jpg" : detectedMime.split("/")[1];
+      const key = `${crypto.randomUUID()}.${extension}`;
       const container = azureBlobService.getContainerClient(azureContainerName);
       await container.createIfNotExists();
       const blob = container.getBlockBlobClient(key);
@@ -81,9 +98,6 @@ export class StorageService {
       return { url: blob.url, key };
     }
 
-    await fs.mkdir(env.UPLOAD_DIR, { recursive: true });
-    const filePath = path.join(env.UPLOAD_DIR, key);
-    await fs.writeFile(filePath, buffer);
-    return { url: `/uploads/${key}`, key };
+    throw new BadRequestError("No cloud storage configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in backend/.env");
   }
 }

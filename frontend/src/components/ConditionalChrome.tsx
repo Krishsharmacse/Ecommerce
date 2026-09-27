@@ -3,7 +3,6 @@
 import React from "react";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import AnimatedBackground from "@/components/AnimatedBackground";
 
 export default function ConditionalChrome({
   children,
@@ -13,14 +12,14 @@ export default function ConditionalChrome({
   const pathname = usePathname();
   const isWorkspace = pathname?.startsWith("/workspace");
   const isAdminDashboard = pathname?.startsWith("/dashboard/admin");
+  const isVendorDashboard = pathname?.startsWith("/dashboard/vendor");
 
-  if (isWorkspace || isAdminDashboard) {
+  if (isWorkspace || isAdminDashboard || isVendorDashboard) {
     return <>{children}</>;
   }
 
   return (
     <>
-      <AnimatedBackground />
       <Navbar />
       <main>{children}</main>
     </>

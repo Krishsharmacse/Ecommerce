@@ -212,7 +212,7 @@ export default function CustomerDashboardPage() {
                         Welcome back, <strong className="text-[var(--foreground)]">{user?.firstname}</strong>. Manage your orders, saved addresses, and profile securely.
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <Link href="/shop" className="btn btn--secondary btn--sm">
                         🛍 Browse Catalog
                     </Link>
@@ -404,7 +404,7 @@ export default function CustomerDashboardPage() {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="field">
                                 <label className="field__label">First Name</label>
                                 <input
@@ -482,7 +482,7 @@ export default function CustomerDashboardPage() {
                         </div>
 
                         <form onSubmit={handleAddAddress} className="space-y-3 text-sm">
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div>
                                     <label className="field__label">Address Label</label>
                                     <input
@@ -531,7 +531,7 @@ export default function CustomerDashboardPage() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                 <div>
                                     <label className="field__label">City</label>
                                     <input

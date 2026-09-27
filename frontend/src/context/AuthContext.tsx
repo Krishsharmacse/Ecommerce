@@ -28,7 +28,7 @@ export interface AuthContextType {
     isShopkeeper: boolean;       // backwards compatibility
     isApprovedShopkeeper: boolean;// backwards compatibility
     login: (email: string, password: string) => Promise<LoginResult>;
-    register: (data: { firstname: string; lastname: string; email: string; password: string; role?: string }) => Promise<{ success: boolean; message: string; user?: User }>;
+    register: (data: { firstname: string; lastname: string; email: string; password: string; role?: string }) => Promise<{ success: boolean; message: string; user?: User; verification?: { otpId: string } }>;
     logout: () => void;
     refreshUser: () => Promise<void>;
 }
@@ -189,7 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(res.user);
                 setAuthStatus('authenticated');
             }
-            return { success: res.success, message: res.message || 'Registration successful', user: res.user };
+            return { success: res.success, message: res.message || 'Registration successful', user: res.user, verification: res.verification };
         } catch (err: unknown) {
             const e = err as { response?: { data?: { message?: string } } };
             return { success: false, message: e?.response?.data?.message || 'Registration failed' };

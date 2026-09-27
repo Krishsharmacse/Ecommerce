@@ -7,11 +7,17 @@ export interface Product {
     productName?: string;
     description: string;
     price: number;
+    originalPrice?: number;   // real MRP — only shown if provided by backend
     pricePaise?: number;
     category: string;
     stock: number;
     image?: string;
     images?: { url: string; altText?: string }[];
+    altText?: string;
+    rating?: number;          // real average rating from backend
+    ratingCount?: number;     // real review count from backend
+    shopId?: string;
+    shopName?: string;
     createdAt?: string;
 }
 

@@ -9,6 +9,8 @@ import { hashToken } from "../../utils/hash.js";
 import { addDays } from "../../utils/dates.js";
 import { logger } from "../../lib/logger.js";
 import { UserRole } from "@prisma/client";
+import { sendEmail } from "../../services/mail.service.js";
+import { welcomeGoogleTemplate, loginAlertTemplate } from "../../services/email-templates.service.js";
 
 export const googleAuthRoutes = Router();
 
@@ -131,6 +133,7 @@ googleAuthRoutes.get("/google/callback", async (req: Request, res: Response) => 
 
     // Upsert user in Postgres
     let user = await prisma.user.findUnique({ where: { email } });
+    const isNewUser = !user;
 
     if (!user) {
       // Secure random placeholder — cannot be used to log in with password
@@ -152,6 +155,16 @@ googleAuthRoutes.get("/google/callback", async (req: Request, res: Response) => 
         data:  { isEmailVerified: true },
       });
     }
+
+    // Send ShopVault notification email directly from shopvaultofficial4@gmail.com
+    const emailTpl = isNewUser
+      ? welcomeGoogleTemplate(user.firstName)
+      : loginAlertTemplate(user.firstName, new Date());
+    const emailSubject = isNewUser ? "Welcome to ShopVault! 🎉" : "New ShopVault sign-in detected";
+
+    void sendEmail(user.email, emailSubject, emailTpl.text, emailTpl.html)
+      .then(() => logger.info({ email: user.email, isNewUser }, "google: ShopVault notification email delivered"))
+      .catch((err) => logger.error({ err, email: user.email }, "google: failed to send ShopVault email"));
 
     // Issue both access + refresh tokens (same flow as email login)
     const accessToken  = signAccessToken({ sub: user.id, role: user.role, type: "access" });

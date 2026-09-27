@@ -4,6 +4,7 @@ import { logger } from "../lib/logger.js";
 import { wsPublish } from "../lib/ws.js";
 import { prisma } from "../lib/prisma.js";
 import { enqueueShipmentSchedule } from "../modules/queues/index.js";
+import { sendOrderConfirmationEmail } from "../services/order-email.service.js";
 
 export const orderWorker = new Worker(
   "orders",
@@ -12,8 +13,9 @@ export const orderWorker = new Worker(
 
     const orderId = job.data.orderId as string;
 
-    // 1. Schedule shipment
+    // 1. Schedule shipment & send order confirmation email
     await enqueueShipmentSchedule(orderId);
+    await sendOrderConfirmationEmail(orderId).catch(() => {});
 
     // 2. Push real-time WebSocket event to the customer
     try {

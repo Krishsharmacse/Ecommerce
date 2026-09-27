@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { productService, Product } from '@/lib/products';
 import ProductCard from '@/components/ProductCard';
+import { SlidersHorizontal, X, ChevronLeft, ChevronRight, Search, RotateCcw, Star } from 'lucide-react';
 
 const SORT_OPTIONS = [
   { value: 'popularity', label: 'Popularity' },
@@ -162,7 +163,7 @@ function ShopContent() {
           <aside className="lg:col-span-3 bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 space-y-6 shadow-sm sticky top-24">
             <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
               <h2 className="text-base font-black tracking-tight text-[var(--foreground)] flex items-center gap-2">
-                <span>⚙️</span> Filters
+                <SlidersHorizontal className="w-4 h-4 text-blue-500" /> Filters
               </h2>
               {hasActiveFilters && (
                 <button
@@ -302,31 +303,41 @@ function ShopContent() {
                 {category !== 'All' && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)]">
                     <span>{category}</span>
-                    <button type="button" onClick={() => setCategory('All')} className="text-blue-400 font-bold hover:text-blue-300">✕</button>
+                    <button type="button" onClick={() => setCategory('All')} className="text-blue-400 hover:text-blue-300" aria-label="Remove category filter">
+                      <X className="w-3 h-3" />
+                    </button>
                   </span>
                 )}
                 {search.trim() !== '' && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)]">
                     <span>&quot;{search}&quot;</span>
-                    <button type="button" onClick={() => setSearch('')} className="text-blue-400 font-bold hover:text-blue-300">✕</button>
+                    <button type="button" onClick={() => setSearch('')} className="text-blue-400 hover:text-blue-300" aria-label="Clear search">
+                      <X className="w-3 h-3" />
+                    </button>
                   </span>
                 )}
                 {priceRangeIndex !== 0 && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)]">
                     <span>{PRICE_RANGES[priceRangeIndex].label}</span>
-                    <button type="button" onClick={() => setPriceRangeIndex(0)} className="text-blue-400 font-bold hover:text-blue-300">✕</button>
+                    <button type="button" onClick={() => setPriceRangeIndex(0)} className="text-blue-400 hover:text-blue-300" aria-label="Clear price filter">
+                      <X className="w-3 h-3" />
+                    </button>
                   </span>
                 )}
                 {minRating !== 0 && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)]">
                     <span>{minRating}★ & above</span>
-                    <button type="button" onClick={() => setMinRating(0)} className="text-blue-400 font-bold hover:text-blue-300">✕</button>
+                    <button type="button" onClick={() => setMinRating(0)} className="text-blue-400 hover:text-blue-300" aria-label="Clear rating filter">
+                      <X className="w-3 h-3" />
+                    </button>
                   </span>
                 )}
                 {inStockOnly && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)]">
                     <span>In Stock Only</span>
-                    <button type="button" onClick={() => setInStockOnly(false)} className="text-blue-400 font-bold hover:text-blue-300">✕</button>
+                    <button type="button" onClick={() => setInStockOnly(false)} className="text-blue-400 hover:text-blue-300" aria-label="Clear in stock filter">
+                      <X className="w-3 h-3" />
+                    </button>
                   </span>
                 )}
               </div>
@@ -354,9 +365,9 @@ function ShopContent() {
                       type="button"
                       disabled={page === 1}
                       onClick={() => setPage(p => Math.max(1, p - 1))}
-                      className="px-4 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-xs font-semibold text-[var(--foreground)] disabled:opacity-40 hover:border-blue-500 transition-colors"
+                      className="px-4 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-xs font-semibold text-[var(--foreground)] disabled:opacity-40 hover:border-blue-500 transition-colors flex items-center gap-1.5"
                     >
-                      ← Previous
+                      <ChevronLeft className="w-3.5 h-3.5" /> Previous
                     </button>
 
                     <div className="flex items-center gap-1.5">
@@ -385,16 +396,18 @@ function ShopContent() {
                       type="button"
                       disabled={page === totalPages}
                       onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                      className="px-4 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-xs font-semibold text-[var(--foreground)] disabled:opacity-40 hover:border-blue-500 transition-colors"
+                      className="px-4 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-xs font-semibold text-[var(--foreground)] disabled:opacity-40 hover:border-blue-500 transition-colors flex items-center gap-1.5"
                     >
-                      Next →
+                      Next <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 )}
               </>
             ) : (
               <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-12 text-center space-y-4">
-                <div className="text-4xl">🔍</div>
+                <div className="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center mx-auto">
+                  <Search className="w-7 h-7" />
+                </div>
                 <h3 className="text-lg font-bold text-[var(--foreground)]">No matching products found</h3>
                 <p className="text-xs text-[var(--foreground-muted)] max-w-sm mx-auto">
                   We couldn&apos;t find any matches with your current filter selections. Try broadening your criteria.
@@ -402,9 +415,9 @@ function ShopContent() {
                 <button
                   type="button"
                   onClick={clearAllFilters}
-                  className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md hover:bg-blue-500 transition-colors"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md hover:bg-blue-500 transition-colors"
                 >
-                  Reset All Filters
+                  <RotateCcw className="w-3.5 h-3.5" /> Reset All Filters
                 </button>
               </div>
             )}

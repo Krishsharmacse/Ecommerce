@@ -5,6 +5,11 @@ import { productService, Product } from '@/lib/products';
 import { useAuth } from '@/context/AuthContext';
 import ProductCard from '@/components/ProductCard';
 import toast from 'react-hot-toast';
+import {
+    BarChart3, Package, CheckCircle2, Layers, AlertCircle, Plus,
+    Edit2, Trash2, ShoppingBag, Home, ExternalLink, ShieldCheck,
+    X, AlertTriangle, ArrowUpRight
+} from 'lucide-react';
 
 export default function AdminDashboardPage() {
     const { user } = useAuth();
@@ -39,179 +44,260 @@ export default function AdminDashboardPage() {
     const categories = new Set(products.map(p => p.category).filter(Boolean)).size;
 
     return (
-        <div style={{ paddingTop: '70px', minHeight: '100vh' }}>
-            <div style={{ display: 'flex', minHeight: 'calc(100vh - 70px)' }}>
-                {/* Sidebar */}
-                <aside
-                    style={{
-                        width: '260px',
-                        background: 'var(--bg-surface)',
-                        borderRight: '1px solid var(--glass-border)',
-                        padding: '1.5rem 0.75rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.25rem',
-                        flexShrink: 0,
-                    }}
+        <div className="min-h-screen bg-[var(--background)] flex flex-col md:flex-row">
+            {/* Sidebar */}
+            <aside className="w-full md:w-64 bg-[var(--surface)] border-b md:border-b-0 md:border-r border-[var(--border)] p-4 sm:p-5 flex flex-col gap-2 flex-shrink-0">
+                <div className="px-3 py-2 mb-2">
+                    <div className="font-extrabold text-base tracking-tight text-[var(--foreground)] flex items-center gap-2">
+                        <ShieldCheck className="w-5 h-5 text-blue-500" />
+                        <span>Admin Console</span>
+                    </div>
+                    <div className="text-xs text-[var(--foreground-muted)] mt-0.5">
+                        Logged in as {user?.firstname || 'Admin'}
+                    </div>
+                </div>
+
+                <div className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[var(--foreground-muted)]">
+                    Navigation
+                </div>
+
+                <button
+                    onClick={() => setActiveTab('overview')}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors text-left ${activeTab === 'overview' ? 'bg-blue-600 text-white shadow-sm' : 'text-[var(--foreground-secondary)] hover:bg-[var(--surface-elevated)] hover:text-[var(--foreground)]'}`}
                 >
-                    <div style={{ padding: '0.5rem 1rem', marginBottom: '0.5rem' }}>
-                        <div style={{ fontWeight: 800, fontFamily: 'Outfit, sans-serif', fontSize: '1.1rem' }}>
-                            <span className="text-gradient">Admin Panel</span>
+                    <BarChart3 className="w-4 h-4" />
+                    <span>Overview</span>
+                </button>
+
+                <button
+                    onClick={() => setActiveTab('products')}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors text-left ${activeTab === 'products' ? 'bg-blue-600 text-white shadow-sm' : 'text-[var(--foreground-secondary)] hover:bg-[var(--surface-elevated)] hover:text-[var(--foreground)]'}`}
+                >
+                    <Package className="w-4 h-4" />
+                    <span>Catalog Products</span>
+                </button>
+
+                {/* Primary system admin link */}
+                <Link
+                    href="/dashboard/admin"
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors mt-2"
+                >
+                    <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>Full Admin System</span>
+                    </div>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                </Link>
+
+                <div className="mt-4 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[var(--foreground-muted)]">
+                    Quick Links
+                </div>
+
+                <Link
+                    href="/shop"
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-[var(--foreground-secondary)] hover:bg-[var(--surface-elevated)] hover:text-[var(--foreground)] transition-colors"
+                >
+                    <ShoppingBag className="w-4 h-4" />
+                    <span>Live Storefront</span>
+                </Link>
+                <Link
+                    href="/"
+                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs text-[var(--foreground-secondary)] hover:bg-[var(--surface-elevated)] hover:text-[var(--foreground)] transition-colors"
+                >
+                    <Home className="w-4 h-4" />
+                    <span>Back to Home</span>
+                </Link>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 p-4 sm:p-8 overflow-y-auto">
+                {activeTab === 'overview' && (
+                    <div className="space-y-6 max-w-6xl mx-auto">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[var(--foreground)]">
+                                    Catalog Management
+                                </h1>
+                                <p className="text-xs text-[var(--foreground-muted)] mt-1">
+                                    Real-time inventory and product catalog overview
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Link
+                                    href="/dashboard/admin"
+                                    className="px-4 py-2.5 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-xs font-semibold text-[var(--foreground)] hover:border-blue-500 transition-colors inline-flex items-center gap-1.5"
+                                >
+                                    <span>Vendor Approvals</span>
+                                    <ExternalLink className="w-3.5 h-3.5 text-blue-400" />
+                                </Link>
+                                <button
+                                    onClick={() => { setActiveTab('products'); setShowAddModal(true); }}
+                                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs font-bold transition-colors shadow-md inline-flex items-center gap-1.5"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span>Add Product</span>
+                                </button>
+                            </div>
                         </div>
-                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                            Welcome, {user?.firstname}
-                        </div>
-                    </div>
 
-                    <div style={{ padding: '0.5rem 1rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
-                        Management
-                    </div>
-
-                    {[
-                        { id: 'overview', icon: '📊', label: 'Overview' },
-                        { id: 'products', icon: '📦', label: 'Products' },
-                    ].map(item => (
-                        <button
-                            key={item.id}
-                            className={`sidebar-item ${activeTab === item.id ? 'active' : ''}`}
-                            onClick={() => setActiveTab(item.id as 'overview' | 'products')}
-                            style={{ width: '100%', textAlign: 'left' }}
-                        >
-                            <span className="sidebar-icon">{item.icon}</span>
-                            {item.label}
-                        </button>
-                    ))}
-
-                    <div style={{ marginTop: '0.75rem', padding: '0.5rem 1rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
-                        Quick Links
-                    </div>
-
-                    <Link href="/shop" className="sidebar-item" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <span className="sidebar-icon">🛍</span>
-                        View Store
-                    </Link>
-                    <Link href="/" className="sidebar-item" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <span className="sidebar-icon">🏠</span>
-                        Back to Home
-                    </Link>
-                </aside>
-
-                {/* Main */}
-                <main style={{ flex: 1, padding: '2rem', overflow: 'auto' }}>
-                    {activeTab === 'overview' && (
-                        <>
-                            <div style={{ marginBottom: '2rem' }}>
-                                <h1 className="heading-md">Dashboard Overview</h1>
-                                <p style={{ color: 'var(--text-muted)', marginTop: '0.25rem' }}>Welcome back, Admin!</p>
+                        {/* Stats Cards */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 shadow-sm space-y-2">
+                                <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                    <Package className="w-5 h-5" />
+                                </div>
+                                <div className="text-2xl font-black text-[var(--foreground)]">
+                                    {loading ? '...' : products.length}
+                                </div>
+                                <div className="text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider">
+                                    Total Products
+                                </div>
                             </div>
 
-                            {/* Stats */}
-                            <div className="stats-grid">
-                                <div className="stat-card">
-                                    <div className="stat-icon primary">📦</div>
-                                    <div className="stat-value">{loading ? '...' : products.length}</div>
-                                    <div className="stat-label">Total Products</div>
+                            <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 shadow-sm space-y-2">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                                    <CheckCircle2 className="w-5 h-5" />
                                 </div>
-                                <div className="stat-card">
-                                    <div className="stat-icon success">✅</div>
-                                    <div className="stat-value">{loading ? '...' : totalStock}</div>
-                                    <div className="stat-label">Total Stock Units</div>
+                                <div className="text-2xl font-black text-[var(--foreground)]">
+                                    {loading ? '...' : totalStock.toLocaleString('en-IN')}
                                 </div>
-                                <div className="stat-card">
-                                    <div className="stat-icon warning">📂</div>
-                                    <div className="stat-value">{loading ? '...' : categories}</div>
-                                    <div className="stat-label">Categories</div>
-                                </div>
-                                <div className="stat-card">
-                                    <div className="stat-icon danger">⚠️</div>
-                                    <div className="stat-value">{loading ? '...' : outOfStock}</div>
-                                    <div className="stat-label">Out of Stock</div>
+                                <div className="text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider">
+                                    Available Stock Units
                                 </div>
                             </div>
 
-                            {/* Recent Products */}
-                            <div style={{ marginTop: '2rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                                    <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>Recent Products</h2>
-                                    <button className="btn btn-primary btn-sm" onClick={() => { setActiveTab('products'); setShowAddModal(true); }}>
-                                        + Add Product
-                                    </button>
+                            <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 shadow-sm space-y-2">
+                                <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
+                                    <Layers className="w-5 h-5" />
                                 </div>
-                                {loading ? (
-                                    <div className="page-loader"><div className="spinner spinner-primary" /></div>
-                                ) : (
-                                    <div className="table-container">
-                                        <table>
-                                            <thead>
-                                                <tr>
-                                                    <th>Product</th>
-                                                    <th>Category</th>
-                                                    <th>Price</th>
-                                                    <th>Stock</th>
-                                                    <th>Status</th>
-                                                    <th>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {products.slice(0, 8).map(p => (
-                                                    <tr key={p._id}>
-                                                        <td>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'var(--bg-elevated)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <div className="text-2xl font-black text-[var(--foreground)]">
+                                    {loading ? '...' : categories}
+                                </div>
+                                <div className="text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider">
+                                    Active Categories
+                                </div>
+                            </div>
+
+                            <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 shadow-sm space-y-2">
+                                <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
+                                    <AlertCircle className="w-5 h-5" />
+                                </div>
+                                <div className="text-2xl font-black text-[var(--foreground)]">
+                                    {loading ? '...' : outOfStock}
+                                </div>
+                                <div className="text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider">
+                                    Out of Stock
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Recent Products Table */}
+                        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 shadow-sm space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--foreground)]">
+                                    Recently Added Products
+                                </h2>
+                                <button
+                                    onClick={() => setActiveTab('products')}
+                                    className="text-xs font-bold text-blue-400 hover:text-blue-300"
+                                >
+                                    View All
+                                </button>
+                            </div>
+
+                            {loading ? (
+                                <div className="space-y-3 py-6">
+                                    {[...Array(4)].map((_, i) => (
+                                        <div key={i} className="h-12 bg-[var(--surface-elevated)] rounded-xl animate-pulse" />
+                                    ))}
+                                </div>
+                            ) : products.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-xs">
+                                        <thead>
+                                            <tr className="border-b border-[var(--border-subtle)] text-[var(--foreground-muted)] uppercase tracking-wider">
+                                                <th className="pb-3 font-semibold">Product</th>
+                                                <th className="pb-3 font-semibold">Category</th>
+                                                <th className="pb-3 font-semibold">Price</th>
+                                                <th className="pb-3 font-semibold">Stock</th>
+                                                <th className="pb-3 font-semibold">Status</th>
+                                                <th className="pb-3 font-semibold text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-[var(--border-subtle)]">
+                                            {products.slice(0, 8).map(p => {
+                                                const inStock = (p.stock || 0) > 0;
+                                                return (
+                                                    <tr key={p._id} className="hover:bg-[var(--surface-elevated)] transition-colors">
+                                                        <td className="py-3 pr-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-10 h-10 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border-subtle)] overflow-hidden flex items-center justify-center flex-shrink-0">
                                                                     {p.image ? (
-                                                                        <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                        <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
                                                                     ) : (
-                                                                        <span style={{ fontSize: '1.25rem' }}>🛍️</span>
+                                                                        <Package className="w-5 h-5 text-zinc-500 stroke-[1.2]" />
                                                                     )}
                                                                 </div>
-                                                                <div>
-                                                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.875rem' }}>{p.name || p.productName}</div>
-                                                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{p._id.slice(-8)}</div>
+                                                                <div className="min-w-0">
+                                                                    <div className="font-bold text-[var(--foreground)] truncate max-w-[200px]">{p.name || p.productName}</div>
+                                                                    <div className="text-[10px] text-[var(--foreground-muted)] font-mono">{p._id.slice(-8)}</div>
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td><span className="badge badge-primary">{p.category}</span></td>
-                                                        <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>₹{p.price.toLocaleString('en-IN')}</td>
-                                                        <td>{p.stock}</td>
-                                                        <td>
-                                                            <span className={`badge ${(p.stock || 0) > 0 ? 'badge-success' : 'badge-danger'}`}>
-                                                                {(p.stock || 0) > 0 ? 'In Stock' : 'Out of Stock'}
+                                                        <td className="py-3 pr-4 text-[var(--foreground-secondary)]">{p.category}</td>
+                                                        <td className="py-3 pr-4 font-mono font-bold text-[var(--foreground)]">₹{p.price.toLocaleString('en-IN')}</td>
+                                                        <td className="py-3 pr-4 font-mono text-[var(--foreground)]">{p.stock}</td>
+                                                        <td className="py-3 pr-4">
+                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${inStock ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
+                                                                {inStock ? 'In Stock' : 'Out of Stock'}
                                                             </span>
                                                         </td>
-                                                        <td>
-                                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                                <button className="btn btn-secondary btn-sm" onClick={() => { setEditProduct(p); setActiveTab('products'); }}>
-                                                                    ✏️
+                                                        <td className="py-3 text-right">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => { setEditProduct(p); setActiveTab('products'); }}
+                                                                    className="p-1.5 rounded-lg border border-[var(--border)] hover:border-blue-500 text-[var(--foreground-secondary)] hover:text-blue-400 transition-colors"
+                                                                    aria-label="Edit product"
+                                                                >
+                                                                    <Edit2 className="w-3.5 h-3.5" />
                                                                 </button>
-                                                                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(p._id)}>
-                                                                    🗑
+                                                                <button
+                                                                    onClick={() => handleDelete(p._id)}
+                                                                    className="p-1.5 rounded-lg border border-[var(--border)] hover:border-rose-500 text-[var(--foreground-secondary)] hover:text-rose-400 transition-colors"
+                                                                    aria-label="Delete product"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
                                                                 </button>
                                                             </div>
                                                         </td>
                                                     </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                            </div>
-                        </>
-                    )}
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-xs text-[var(--foreground-muted)]">
+                                    No products found in the catalog.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
 
-                    {activeTab === 'products' && (
-                        <ProductsTab
-                            products={products}
-                            loading={loading}
-                            onRefresh={fetchProducts}
-                            showAddModal={showAddModal}
-                            setShowAddModal={setShowAddModal}
-                            editProduct={editProduct}
-                            setEditProduct={setEditProduct}
-                            onDelete={handleDelete}
-                        />
-                    )}
-                </main>
-            </div>
+                {activeTab === 'products' && (
+                    <ProductsTab
+                        products={products}
+                        loading={loading}
+                        onRefresh={fetchProducts}
+                        showAddModal={showAddModal}
+                        setShowAddModal={setShowAddModal}
+                        editProduct={editProduct}
+                        setEditProduct={setEditProduct}
+                        onDelete={handleDelete}
+                    />
+                )}
+            </main>
         </div>
     );
 }
@@ -230,21 +316,34 @@ interface ProductsTabProps {
 
 function ProductsTab({ products, loading, onRefresh, showAddModal, setShowAddModal, editProduct, setEditProduct, onDelete }: ProductsTabProps) {
     return (
-        <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div className="space-y-6 max-w-6xl mx-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="heading-md">Products</h1>
-                    <p style={{ color: 'var(--text-muted)', marginTop: '0.25rem' }}>{products.length} total products</p>
+                    <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[var(--foreground)]">
+                        All Products
+                    </h1>
+                    <p className="text-xs text-[var(--foreground-muted)] mt-1">
+                        {products.length} total products in database
+                    </p>
                 </div>
-                <button id="add-product-btn" className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-                    ➕ Add Product
+                <button
+                    id="add-product-btn"
+                    onClick={() => setShowAddModal(true)}
+                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs font-bold transition-colors shadow-md inline-flex items-center gap-1.5 self-start sm:self-auto"
+                >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Product</span>
                 </button>
             </div>
 
             {loading ? (
-                <div className="page-loader"><div className="spinner spinner-primary spinner-lg" /></div>
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {[...Array(8)].map((_, i) => (
+                        <div key={i} className="aspect-[3/4] bg-[var(--surface-elevated)] rounded-2xl animate-pulse" />
+                    ))}
+                </div>
             ) : products.length > 0 ? (
-                <div className="products-grid">
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                     {products.map((product, i) => (
                         <ProductCard
                             key={product._id}
@@ -257,12 +356,19 @@ function ProductsTab({ products, loading, onRefresh, showAddModal, setShowAddMod
                     ))}
                 </div>
             ) : (
-                <div className="empty-state">
-                    <div className="empty-icon">📦</div>
-                    <div className="empty-title">No products yet</div>
-                    <div className="empty-description">Add your first product to get started.</div>
-                    <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
-                        Add First Product
+                <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-12 text-center space-y-4">
+                    <div className="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center mx-auto">
+                        <Package className="w-7 h-7" />
+                    </div>
+                    <h3 className="text-base font-bold text-[var(--foreground)]">No products yet</h3>
+                    <p className="text-xs text-[var(--foreground-muted)] max-w-sm mx-auto">
+                        Add your first catalog product to start selling across the marketplace.
+                    </p>
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        className="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md hover:bg-blue-500 transition-colors inline-flex items-center gap-1.5"
+                    >
+                        <Plus className="w-4 h-4" /> Add First Product
                     </button>
                 </div>
             )}
@@ -348,74 +454,164 @@ function ProductModal({ product, onClose, onSave }: ProductModalProps) {
     };
 
     return (
-        <div className="modal-backdrop" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-            <div className="modal" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2 className="modal-title">{isEdit ? '✏️ Edit Product' : '➕ Add New Product'}</h2>
-                    <button className="modal-close" onClick={onClose}>✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-up">
+            <div className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-4">
+                    <h2 className="text-base font-black tracking-tight text-[var(--foreground)]">
+                        {isEdit ? 'Edit Product' : 'Add New Product'}
+                    </h2>
+                    <button
+                        onClick={onClose}
+                        className="w-8 h-8 rounded-full bg-[var(--surface-elevated)] border border-[var(--border)] flex items-center justify-center text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+                        aria-label="Close modal"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
                 </div>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
-                        <div className="form-group">
-                            <label className="form-label">Product Name</label>
-                            <input id="product-name" name="name" type="text" className={`form-input ${errors.name ? 'error' : ''}`} placeholder="Enter product name" value={form.name} onChange={handleChange} />
-                            {errors.name && <span className="form-error">⚠ {errors.name}</span>}
-                        </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-xs font-semibold text-[var(--foreground-secondary)] mb-1">
+                            Product Name
+                        </label>
+                        <input
+                            id="product-name"
+                            name="name"
+                            type="text"
+                            className="w-full h-10 px-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-xs text-[var(--foreground)] outline-none focus:border-blue-500 transition-colors"
+                            placeholder="e.g. Wireless Noise-Cancelling Headphones"
+                            value={form.name}
+                            onChange={handleChange}
+                        />
+                        {errors.name && (
+                            <span className="text-[11px] text-rose-500 mt-1 flex items-center gap-1">
+                                <AlertTriangle className="w-3 h-3" /> {errors.name}
+                            </span>
+                        )}
+                    </div>
 
-                        <div className="form-group">
-                            <label className="form-label">Description</label>
-                            <textarea
-                                id="product-description"
-                                name="description"
-                                className={`form-input ${errors.description ? 'error' : ''}`}
-                                placeholder="Enter product description"
-                                value={form.description}
+                    <div>
+                        <label className="block text-xs font-semibold text-[var(--foreground-secondary)] mb-1">
+                            Description
+                        </label>
+                        <textarea
+                            id="product-description"
+                            name="description"
+                            className="w-full p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-xs text-[var(--foreground)] outline-none focus:border-blue-500 transition-colors"
+                            placeholder="Detailed product specifications and highlights"
+                            value={form.description}
+                            onChange={handleChange}
+                            rows={3}
+                        />
+                        {errors.description && (
+                            <span className="text-[11px] text-rose-500 mt-1 flex items-center gap-1">
+                                <AlertTriangle className="w-3 h-3" /> {errors.description}
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-semibold text-[var(--foreground-secondary)] mb-1">
+                                Price (₹)
+                            </label>
+                            <input
+                                id="product-price"
+                                name="price"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="w-full h-10 px-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-xs text-[var(--foreground)] outline-none focus:border-blue-500 transition-colors"
+                                placeholder="0.00"
+                                value={form.price}
                                 onChange={handleChange}
-                                rows={3}
-                                style={{ resize: 'vertical', minHeight: '90px' }}
                             />
-                            {errors.description && <span className="form-error">⚠ {errors.description}</span>}
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                            <div className="form-group">
-                                <label className="form-label">Price (₹)</label>
-                                <input id="product-price" name="price" type="number" min="0" step="0.01" className={`form-input ${errors.price ? 'error' : ''}`} placeholder="0.00" value={form.price} onChange={handleChange} />
-                                {errors.price && <span className="form-error">⚠ {errors.price}</span>}
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Stock</label>
-                                <input id="product-stock" name="stock" type="number" min="0" className="form-input" placeholder="0" value={form.stock} onChange={handleChange} />
-                            </div>
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label">Category</label>
-                            <select id="product-category" name="category" className={`form-input ${errors.category ? 'error' : ''}`} value={form.category} onChange={handleChange}>
-                                <option value="">-- Select Category --</option>
-                                {['Electronics', 'Clothing', 'Food', 'Books', 'Sports', 'Health', 'Other'].map(c => (
-                                    <option key={c} value={c}>{c}</option>
-                                ))}
-                            </select>
-                            {errors.category && <span className="form-error">⚠ {errors.category}</span>}
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label">Image URL (optional)</label>
-                            <input id="product-image" name="image" type="text" className="form-input" placeholder="https://example.com/image.jpg" value={form.image} onChange={handleChange} />
-                            {form.image && (
-                                <div style={{ marginTop: '0.5rem', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--glass-border)', maxHeight: '140px' }}>
-                                    <img src={form.image} alt="Preview" style={{ width: '100%', height: '140px', objectFit: 'cover' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                                </div>
+                            {errors.price && (
+                                <span className="text-[11px] text-rose-500 mt-1 flex items-center gap-1">
+                                    <AlertTriangle className="w-3 h-3" /> {errors.price}
+                                </span>
                             )}
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-[var(--foreground-secondary)] mb-1">
+                                Stock Count
+                            </label>
+                            <input
+                                id="product-stock"
+                                name="stock"
+                                type="number"
+                                min="0"
+                                className="w-full h-10 px-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-xs text-[var(--foreground)] outline-none focus:border-blue-500 transition-colors"
+                                placeholder="0"
+                                value={form.stock}
+                                onChange={handleChange}
+                            />
                         </div>
                     </div>
 
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-                        <button id="product-save-btn" type="submit" className={`btn btn-primary ${loading ? 'btn-loading' : ''}`} disabled={loading}>
-                            {loading ? <><span className="spinner" /> Saving...</> : isEdit ? 'Update Product' : 'Add Product'}
+                    <div>
+                        <label className="block text-xs font-semibold text-[var(--foreground-secondary)] mb-1">
+                            Category
+                        </label>
+                        <select
+                            id="product-category"
+                            name="category"
+                            className="w-full h-10 px-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-xs text-[var(--foreground)] outline-none focus:border-blue-500 transition-colors"
+                            value={form.category}
+                            onChange={handleChange}
+                        >
+                            <option value="">-- Select Category --</option>
+                            {['Electronics', 'Clothing', 'Footwear', 'Home & Living', 'Health & Wellness', 'Sports & Outdoors', 'Books', 'Other'].map(c => (
+                                <option key={c} value={c}>{c}</option>
+                            ))}
+                        </select>
+                        {errors.category && (
+                            <span className="text-[11px] text-rose-500 mt-1 flex items-center gap-1">
+                                <AlertTriangle className="w-3 h-3" /> {errors.category}
+                            </span>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold text-[var(--foreground-secondary)] mb-1">
+                            Image URL (optional)
+                        </label>
+                        <input
+                            id="product-image"
+                            name="image"
+                            type="text"
+                            className="w-full h-10 px-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-xs text-[var(--foreground)] outline-none focus:border-blue-500 transition-colors"
+                            placeholder="https://images.example.com/item.jpg"
+                            value={form.image}
+                            onChange={handleChange}
+                        />
+                        {form.image && (
+                            <div className="mt-2 h-28 rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--surface-elevated)]">
+                                <img
+                                    src={form.image}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover"
+                                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--border-subtle)]">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-4 py-2.5 rounded-xl border border-[var(--border)] text-xs font-semibold text-[var(--foreground)] hover:bg-[var(--surface-elevated)] transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            id="product-save-btn"
+                            type="submit"
+                            disabled={loading}
+                            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs font-bold transition-colors shadow-md disabled:opacity-50"
+                        >
+                            {loading ? 'Saving...' : isEdit ? 'Update Product' : 'Add Product'}
                         </button>
                     </div>
                 </form>

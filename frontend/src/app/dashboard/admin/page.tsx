@@ -174,9 +174,9 @@ export default function AdminDashboardPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100 flex font-sans antialiased">
+        <div className="admin-dashboard min-h-screen bg-zinc-950 text-zinc-100 flex font-sans antialiased">
             {/* 1. Dedicated Admin Sidebar (Clean fixed left shell) */}
-            <aside className="w-64 fixed inset-y-0 left-0 z-30 bg-zinc-950 border-r border-zinc-800 flex flex-col justify-between p-4 hidden md:flex">
+            <aside className="admin-dashboard__sidebar w-64 fixed inset-y-0 left-0 z-30 bg-zinc-950 border-r border-zinc-800 flex flex-col justify-between p-4 hidden md:flex">
                 <div className="space-y-4">
                     {/* Admin HQ Brand Header */}
                     <div className="flex items-center gap-3 px-2 py-2.5 border-b border-zinc-800/80">
@@ -283,7 +283,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* 2. Main Content Area (Properly offset with md:pl-64 so it is never obscured by the sidebar) */}
-            <div className="md:pl-64 flex flex-col flex-1 min-w-0 bg-zinc-950 min-h-screen">
+            <div className="admin-dashboard__content md:pl-64 flex flex-col flex-1 min-w-0 w-full bg-zinc-950 min-h-screen">
                 {/* Dedicated Top Admin Header */}
                 <header className="h-16 border-b border-zinc-800 px-6 sm:px-8 flex items-center justify-between bg-zinc-950/80 backdrop-blur sticky top-0 z-20">
                     <div className="flex items-center gap-3 min-w-0">
@@ -320,7 +320,7 @@ export default function AdminDashboardPage() {
                 </header>
 
                 {/* Page Body */}
-                <main className="p-6 sm:p-8 md:p-10 space-y-8 flex-1 pb-24 md:pb-12 max-w-7xl">
+                <main className="admin-dashboard__body w-full max-w-7xl p-6 sm:p-8 md:p-10 space-y-8 flex-1 pb-24 md:pb-12">
                     {/* TAB 1: PLATFORM OVERVIEW */}
                     {tab === 'overview' && (
                         <div className="space-y-8">
@@ -747,7 +747,7 @@ export default function AdminDashboardPage() {
                                         className="px-3 py-1.5 text-xs rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-pink-500 w-56"
                                     />
 
-                                    <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800">
+                                    <div className="admin-filter-group flex bg-zinc-900 p-1 rounded-xl border border-zinc-800">
                                         {(['all', 'approved', 'pending', 'suspended'] as const).map(s => (
                                             <button
                                                 key={s}

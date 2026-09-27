@@ -18,9 +18,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     if (authStatus === 'loading' || authStatus === 'unauthenticated' || !isAdmin) {
         return (
-            <div className="page-loader" style={{ paddingTop: '70px' }}>
-                <div className="spinner spinner-primary spinner-lg" />
-                <span>Loading admin panel...</span>
+            <div className="min-h-[calc(100vh-var(--navbar-h))] flex flex-col items-center justify-center gap-3">
+                <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs text-[var(--foreground-muted)] font-mono">Loading admin panel...</span>
             </div>
         );
     }

@@ -5,6 +5,7 @@ import {
   logout,
   refresh,
   register,
+  resendVerification,
   resetPassword,
   verifyEmail,
   verifyOtp,
@@ -20,6 +21,7 @@ authRoutes.use(googleAuthRoutes);
 // Strict rate-limited auth endpoints
 authRoutes.post("/register",         authRateLimiter, register);
 authRoutes.post("/login",            authRateLimiter, login);
+authRoutes.post("/resend-verification", authRateLimiter, resendVerification);
 authRoutes.post("/refresh",          authRateLimiter, refresh);
 authRoutes.post("/logout",           authRateLimiter, logout);
 authRoutes.post("/forgot-password",  authRateLimiter, forgotPassword);

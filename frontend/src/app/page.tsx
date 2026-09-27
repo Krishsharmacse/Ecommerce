@@ -1,464 +1,400 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import {
+  ChevronRight, ChevronLeft, Zap, Shield, RefreshCcw, BadgeCheck,
+  Cpu, Shirt, Watch, Home, Dumbbell, Sparkles, ShoppingBag, Package, Clock,
+  ArrowRight, ShieldCheck, Truck, Star,
+} from 'lucide-react';
 import { productService, Product } from '@/lib/products';
 import ProductCard from '@/components/ProductCard';
 
 const CATEGORIES = [
-  {
-    name: 'Electronics',
-    slug: 'Electronics',
-    tagline: 'Audio, peripherals & tech',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80',
-    icon: '💻',
-  },
-  {
-    name: 'Apparel',
-    slug: 'Apparel',
-    tagline: 'Tailored knitwear & jackets',
-    image: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500&q=80',
-    icon: '👕',
-  },
-  {
-    name: 'Lifestyle',
-    slug: 'Lifestyle',
-    tagline: 'Watches, bags & eyewear',
-    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80',
-    icon: '⌚',
-  },
-  {
-    name: 'Home & Living',
-    slug: 'Home',
-    tagline: 'Ceramics, coffee & decor',
-    image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=500&q=80',
-    icon: '🛋️',
-  },
+  { name: 'Electronics', slug: 'Electronics', icon: Cpu, color: '#3b82f6' },
+  { name: 'Clothing', slug: 'Clothing', icon: Shirt, color: '#8b5cf6' },
+  { name: 'Footwear', slug: 'Footwear', icon: ShoppingBag, color: '#f59e0b' },
+  { name: 'Home & Living', slug: 'Home & Living', icon: Home, color: '#10b981' },
+  { name: 'Health', slug: 'Health & Wellness', icon: Sparkles, color: '#ec4899' },
+  { name: 'Sports', slug: 'Sports & Outdoors', icon: Dumbbell, color: '#f97316' },
 ];
 
 const HERO_SLIDES = [
   {
-    tag: '⚡ ShopVault Big Freedom Sale',
-    title: 'Precision Tech & Flagship Audio Drops',
-    desc: 'Up to 45% off on studio headphones, mechanical keyboards, and verified workstation peripherals with zero deposit escrow.',
-    cta: 'Shop Tech Deals',
+    tag: 'Big Sale — Up to 45% Off',
+    title: 'Premium Tech & Flagship Audio',
+    desc: 'Studio headphones, mechanical keyboards, and verified workstation peripherals.',
+    cta: 'Shop Electronics',
     href: '/shop?category=Electronics',
-    bgGradient: 'from-blue-950 via-indigo-950 to-zinc-950',
-    accentColor: '#3b82f6',
+    gradient: 'from-blue-950 to-indigo-950',
   },
   {
-    tag: '✦ Handcrafted Atelier Wear',
-    title: 'Autumn Tailored Silhouettes & Outerwear',
-    desc: 'Discover heavy-weight organic wool overcoats, raw selvedge denim, and minimal minimalist sneakers directly from verified makers.',
-    cta: 'Explore Apparel',
-    href: '/shop?category=Apparel',
-    bgGradient: 'from-purple-950 via-slate-950 to-zinc-950',
-    accentColor: '#8b5cf6',
+    tag: 'Handcrafted Collection',
+    title: 'Autumn Tailored Silhouettes',
+    desc: 'Organic wool overcoats, raw selvedge denim, and premium sneakers from verified makers.',
+    cta: 'Shop Clothing',
+    href: '/shop?category=Clothing',
+    gradient: 'from-purple-950 to-slate-950',
   },
   {
-    tag: '⏱ Limited Time Flash Event',
-    title: 'Horology & Handcrafted Leather Objects',
-    desc: 'Automatic Swiss movements and vegetable-tanned Italian leather goods backed by tamper-proof authentication certificates.',
+    tag: 'Limited Time',
+    title: 'Horology & Leather Objects',
+    desc: 'Automatic movements and vegetable-tanned Italian leather goods.',
     cta: 'Browse Lifestyle',
-    href: '/shop?category=Lifestyle',
-    bgGradient: 'from-emerald-950 via-zinc-950 to-slate-950',
-    accentColor: '#10b981',
+    href: '/shop?category=Footwear',
+    gradient: 'from-emerald-950 to-zinc-950',
   },
 ];
 
-const TRUST_METRICS = [
-  { label: 'Free Delivery', sub: 'On orders over ₹999', icon: '⚡' },
-  { label: 'Escrow Guarantee', sub: '100% money back safety', icon: '🛡️' },
-  { label: '7-Day Replacement', sub: 'No-questions-asked swap', icon: '🔄' },
-  { label: 'Verified Sellers', sub: 'Strict quality inspection', icon: '✦' },
+const TRUST_ITEMS = [
+  { icon: Truck, label: 'Free Delivery', sub: 'On orders over ₹999' },
+  { icon: ShieldCheck, label: 'Secure Checkout', sub: '100% payment protection' },
+  { icon: RefreshCcw, label: '7-Day Returns', sub: 'Hassle-free replacements' },
+  { icon: BadgeCheck, label: 'Verified Sellers', sub: 'Strict quality standards' },
 ];
+
+// Product skeleton loader
+function ProductSkeleton() {
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}>
+      <div className="animate-pulse" style={{ aspectRatio: '4/3', background: 'var(--surface-elevated)' }} />
+      <div className="p-3.5 space-y-2">
+        <div className="h-3 w-1/3 rounded animate-pulse" style={{ background: 'var(--surface-elevated)' }} />
+        <div className="h-4 w-4/5 rounded animate-pulse" style={{ background: 'var(--surface-elevated)' }} />
+        <div className="h-4 w-1/2 rounded animate-pulse" style={{ background: 'var(--surface-elevated)' }} />
+        <div className="h-3 w-2/3 rounded animate-pulse" style={{ background: 'var(--surface-elevated)' }} />
+      </div>
+    </div>
+  );
+}
+
+function SectionHeader({ title, sub, href }: { title: string; sub?: string; href: string }) {
+  return (
+    <div className="flex items-end justify-between mb-6 pb-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+      <div>
+        <h2 className="text-lg md:text-xl font-extrabold tracking-tight" style={{ color: 'var(--foreground)' }}>
+          {title}
+        </h2>
+        {sub && <p className="text-xs mt-0.5" style={{ color: 'var(--foreground-muted)' }}>{sub}</p>}
+      </div>
+      <Link href={href} className="flex items-center gap-1 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors">
+        View All <ArrowRight className="w-3.5 h-3.5" />
+      </Link>
+    </div>
+  );
+}
 
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSlide, setActiveSlide] = useState(0);
-  const [countdown, setCountdown] = useState({ hours: 5, minutes: 42, seconds: 19 });
 
   useEffect(() => {
     productService.getAll()
       .then((data) => {
         setProducts(data || []);
         try {
-          const rawRecent = localStorage.getItem('shopvault_recent');
-          if (rawRecent && data) {
-            const recentIds: string[] = JSON.parse(rawRecent);
-            const matches = data.filter(p => recentIds.includes(p._id));
-            setRecentlyViewed(matches.slice(0, 4));
-          }
-        } catch {
-          // ignore
-        }
+          const recentIds: string[] = JSON.parse(localStorage.getItem('shopvault_recent') || '[]');
+          const matches = (data || []).filter(p => recentIds.includes(p._id));
+          setRecentlyViewed(matches.slice(0, 4));
+        } catch { /* ignore */ }
       })
       .catch(() => setProducts([]))
       .finally(() => setLoading(false));
   }, []);
 
-  // Slide rotation timer
+  // Auto-advance hero
   useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveSlide(prev => (prev + 1) % HERO_SLIDES.length);
-    }, 6000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setActiveSlide(s => (s + 1) % HERO_SLIDES.length), 6000);
+    return () => clearInterval(t);
   }, []);
 
-  // Flash deal countdown timer
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCountdown(prev => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 };
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        }
-        return { hours: 6, minutes: 0, seconds: 0 };
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const dealsOfTheDay = products.slice(0, 4);
-  const featured = products.slice(2, 6);
-  const trending = products.slice(4, 8);
-
-  const formatTimer = (n: number) => n.toString().padStart(2, '0');
+  const featured = products.slice(0, 8);
+  const trending = products.slice(4, 12);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--background)]">
+    <div className="flex flex-col min-h-screen" style={{ background: 'var(--background)' }}>
 
-      {/* ── FLIPKART-STYLE CATEGORY CIRCLES STRIP ── */}
-      <section className="bg-[var(--surface)] border-b border-[var(--border)] py-4 overflow-x-auto scrollbar-none">
-        <div className="container mx-auto px-4 flex items-center justify-between min-w-max gap-8 md:justify-center md:gap-14">
-          {CATEGORIES.map((cat) => (
-            <Link
-              key={cat.slug}
-              href={`/shop?category=${encodeURIComponent(cat.slug)}`}
-              className="flex flex-col items-center gap-2 group transition-transform hover:-translate-y-1"
-            >
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full p-1 bg-gradient-to-tr from-blue-600/30 to-purple-600/30 border border-[var(--border)] group-hover:border-blue-500 overflow-hidden shadow-sm">
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-300"
-                />
-              </div>
-              <span className="text-xs font-semibold text-[var(--foreground)] group-hover:text-blue-400 text-center">
-                {cat.name}
-              </span>
-            </Link>
-          ))}
-          <Link
-            href="/shop"
-            className="flex flex-col items-center gap-2 group transition-transform hover:-translate-y-1"
-          >
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-600/10 border border-blue-500/30 group-hover:border-blue-500 flex items-center justify-center text-blue-400 font-bold text-lg shadow-sm">
-              ✦
+      {/* ── Category Strip ── */}
+      <section style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}
+        className="py-3 overflow-x-auto scrollbar-none">
+        <div className="container mx-auto px-4 flex items-center gap-6 md:gap-10 min-w-max md:min-w-0 md:justify-center">
+          {CATEGORIES.map(cat => {
+            const Icon = cat.icon;
+            return (
+              <Link key={cat.slug} href={`/shop?category=${encodeURIComponent(cat.slug)}`}
+                className="flex flex-col items-center gap-1.5 group transition-transform hover:-translate-y-0.5">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all"
+                  style={{ background: `${cat.color}15`, border: `1.5px solid ${cat.color}30` }}>
+                  <Icon className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:scale-110"
+                    style={{ color: cat.color }} strokeWidth={1.5} />
+                </div>
+                <span className="text-[11px] font-semibold whitespace-nowrap"
+                  style={{ color: 'var(--foreground-secondary)' }}>
+                  {cat.name}
+                </span>
+              </Link>
+            );
+          })}
+          <Link href="/shop" className="flex flex-col items-center gap-1.5 group transition-transform hover:-translate-y-0.5">
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all"
+              style={{ background: 'rgba(59,130,246,0.08)', border: '1.5px solid rgba(59,130,246,0.2)' }}>
+              <ShoppingBag className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:scale-110 text-blue-400" strokeWidth={1.5} />
             </div>
-            <span className="text-xs font-semibold text-[var(--foreground)] group-hover:text-blue-400 text-center">
-              All Offers
+            <span className="text-[11px] font-semibold whitespace-nowrap" style={{ color: 'var(--foreground-secondary)' }}>
+              All Products
             </span>
           </Link>
         </div>
       </section>
 
-      {/* ── PROMOTIONAL HERO BANNER SLIDER ── */}
+      {/* ── Hero Banner ── */}
       <section className="container mx-auto px-4 py-4 md:py-6">
-        <div className={`relative rounded-2xl md:rounded-3xl overflow-hidden bg-gradient-to-r ${HERO_SLIDES[activeSlide].bgGradient} border border-white/10 shadow-2xl p-6 sm:p-10 md:p-14 text-white min-h-[340px] md:min-h-[380px] flex flex-col justify-between transition-all duration-700`}>
-          {/* Ambient Glow */}
-          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-blue-500/20 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none" />
+        <div className={`relative rounded-2xl md:rounded-3xl overflow-hidden bg-gradient-to-r ${HERO_SLIDES[activeSlide].gradient} border border-white/8 shadow-2xl p-7 sm:p-10 md:p-14 text-white min-h-[300px] md:min-h-[360px] flex flex-col justify-between transition-all duration-700`}>
+          <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" aria-hidden="true" />
+          <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" aria-hidden="true" />
 
           <div className="relative z-10 max-w-2xl space-y-4">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/10 border border-white/20 text-white backdrop-blur">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border"
+              style={{ background: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.85)' }}>
+              <Zap className="w-3 h-3" fill="currentColor" />
               {HERO_SLIDES[activeSlide].tag}
             </span>
 
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight leading-tight">
               {HERO_SLIDES[activeSlide].title}
             </h1>
-
-            <p className="text-xs sm:text-sm md:text-base text-zinc-300 leading-relaxed max-w-xl">
+            <p className="text-sm md:text-base leading-relaxed max-w-xl" style={{ color: 'rgba(255,255,255,0.65)' }}>
               {HERO_SLIDES[activeSlide].desc}
             </p>
-
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Link
-                href={HERO_SLIDES[activeSlide].href}
-                className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold text-sm transition-all shadow-lg shadow-blue-500/30 flex items-center gap-2"
-              >
-                <span>{HERO_SLIDES[activeSlide].cta}</span>
-                <span>→</span>
+              <Link href={HERO_SLIDES[activeSlide].href}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm transition-all shadow-lg shadow-blue-500/25">
+                {HERO_SLIDES[activeSlide].cta}
+                <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link
-                href="/shop"
-                className="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-semibold text-sm transition-all backdrop-blur"
-              >
+              <Link href="/shop"
+                className="px-5 py-3 rounded-xl text-white font-semibold text-sm transition-all"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
                 Browse All
               </Link>
             </div>
           </div>
 
-          {/* Slide Indicators and Controls */}
-          <div className="relative z-10 flex items-center justify-between pt-6 border-t border-white/10 mt-4">
-            <div className="flex items-center gap-2">
-              {HERO_SLIDES.map((_, idx) => (
-                <button
-                  key={idx}
-                  type="button"
+          {/* Slide controls */}
+          <div className="relative z-10 flex items-center justify-between pt-5 mt-4"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="flex gap-2" role="tablist" aria-label="Hero slides">
+              {HERO_SLIDES.map((slide, idx) => (
+                <button key={idx} type="button"
+                  role="tab" aria-selected={activeSlide === idx}
                   onClick={() => setActiveSlide(idx)}
-                  className={`h-2 rounded-full transition-all duration-300 ${activeSlide === idx ? 'w-8 bg-blue-500' : 'w-2 bg-white/30 hover:bg-white/50'}`}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
+                  aria-label={`Go to slide ${idx + 1}: ${slide.title}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${activeSlide === idx ? 'w-8 bg-blue-400' : 'w-1.5 bg-white/25 hover:bg-white/40'}`} />
               ))}
             </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setActiveSlide(prev => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xs backdrop-blur"
-                aria-label="Previous slide"
-              >
-                ←
+            <div className="flex gap-2">
+              <button type="button" aria-label="Previous slide"
+                onClick={() => setActiveSlide(s => (s - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <ChevronLeft className="w-4 h-4 text-white" />
               </button>
-              <button
-                type="button"
-                onClick={() => setActiveSlide(prev => (prev + 1) % HERO_SLIDES.length)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xs backdrop-blur"
-                aria-label="Next slide"
-              >
-                →
+              <button type="button" aria-label="Next slide"
+                onClick={() => setActiveSlide(s => (s + 1) % HERO_SLIDES.length)}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                <ChevronRight className="w-4 h-4 text-white" />
               </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── TRUST HIGHLIGHTS BAR ── */}
+      {/* ── Trust Bar ── */}
       <section className="container mx-auto px-4 pb-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 md:p-6 shadow-sm">
-          {TRUST_METRICS.map((m) => (
-            <div key={m.label} className="flex items-center gap-3 p-2">
-              <span className="text-2xl">{m.icon}</span>
-              <div>
-                <div className="text-xs md:text-sm font-bold text-[var(--foreground)]">{m.label}</div>
-                <div className="text-[11px] text-[var(--foreground-muted)]">{m.sub}</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 rounded-2xl p-4 md:p-5"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          {TRUST_ITEMS.map(item => {
+            const Icon = item.icon;
+            return (
+              <div key={item.label} className="flex items-center gap-3 p-1">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(59,130,246,0.08)' }}>
+                  <Icon className="w-4 h-4 text-blue-400" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <div className="text-xs font-bold" style={{ color: 'var(--foreground)' }}>{item.label}</div>
+                  <div className="text-[10px]" style={{ color: 'var(--foreground-muted)' }}>{item.sub}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
-      {/* ── DEALS OF THE DAY (FLIPKART STYLE WITH LIVE TIMER) ── */}
+      {/* ── Featured Products ── */}
       <section className="container mx-auto px-4 py-4">
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 md:p-6 shadow-sm">
-          {/* Section Header with Countdown */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-4 mb-6">
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-lg md:text-xl font-black tracking-tight text-[var(--foreground)] flex items-center gap-2">
-                <span>🔥</span> Deals of the Day
-              </h2>
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-mono text-xs font-bold">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                <span>Ends in {formatTimer(countdown.hours)}h : {formatTimer(countdown.minutes)}m : {formatTimer(countdown.seconds)}s</span>
-              </div>
-            </div>
-            <Link
-              href="/shop"
-              className="text-xs md:text-sm font-bold text-blue-500 hover:text-blue-400 flex items-center gap-1"
-            >
-              <span>View All Deals</span>
-              <span>→</span>
-            </Link>
-          </div>
-
+        <div className="rounded-2xl p-5 md:p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          <SectionHeader title="Featured Products" sub="Curated picks from verified sellers" href="/shop" />
           {loading ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="aspect-[3/4] bg-[var(--surface-elevated)] rounded-xl animate-pulse" />
-              ))}
+              {Array.from({ length: 8 }).map((_, i) => <ProductSkeleton key={i} />)}
             </div>
-          ) : dealsOfTheDay.length > 0 ? (
+          ) : featured.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {dealsOfTheDay.map((p) => (
-                <ProductCard key={p._id} product={p} />
-              ))}
+              {featured.map(p => <ProductCard key={p._id} product={p} />)}
             </div>
           ) : (
-            <p className="text-sm text-[var(--foreground-muted)] text-center py-8">
-              Deals updating soon...
-            </p>
+            <div className="py-12 text-center">
+              <Package className="w-10 h-10 mx-auto mb-3 opacity-30" style={{ color: 'var(--foreground-muted)' }} />
+              <p className="text-sm" style={{ color: 'var(--foreground-muted)' }}>No products available yet.</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--foreground-muted)' }}>Check back soon!</p>
+            </div>
           )}
         </div>
       </section>
 
-      {/* ── FEATURED PRODUCTS ── */}
+      {/* ── Promo Cards ── */}
       <section className="container mx-auto px-4 py-4">
-        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 md:p-6 shadow-sm">
-          <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-4 mb-6">
-            <div>
-              <h2 className="text-lg md:text-xl font-black tracking-tight text-[var(--foreground)]">
-                ⭐ Featured Collection
-              </h2>
-              <p className="text-xs text-[var(--foreground-muted)] mt-0.5">
-                Top rated and most frequently reviewed products
-              </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="relative rounded-2xl overflow-hidden p-7 flex flex-col justify-between min-h-[200px]"
+            style={{ background: 'linear-gradient(135deg, #1e3a8a, #1e1b4b)', border: '1px solid rgba(59,130,246,0.2)' }}>
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-300">New In Tech</span>
+              <h3 className="text-2xl font-black text-white leading-tight">Studio Audio &amp; Smart Gadgets</h3>
+              <p className="text-sm text-blue-200/60 max-w-xs">Noise cancellation, mechanical keyboards, and pro-grade peripherals.</p>
             </div>
-            <Link
-              href="/shop"
-              className="text-xs md:text-sm font-bold text-blue-500 hover:text-blue-400"
-            >
-              Browse Catalog →
+            <Link href="/shop?category=Electronics"
+              className="inline-flex items-center gap-2 mt-5 text-xs font-bold text-white px-4 py-2 rounded-lg w-max transition-colors"
+              style={{ background: '#2563eb' }}>
+              Explore Electronics <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-
-          {loading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="aspect-[3/4] bg-[var(--surface-elevated)] rounded-xl animate-pulse" />
-              ))}
+          <div className="relative rounded-2xl overflow-hidden p-7 flex flex-col justify-between min-h-[200px]"
+            style={{ background: 'linear-gradient(135deg, #4c1d95, #831843)', border: '1px solid rgba(168,85,247,0.2)' }}>
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-200">Trending Fashion</span>
+              <h3 className="text-2xl font-black text-white leading-tight">Timeless Wear &amp; Accessories</h3>
+              <p className="text-sm text-purple-200/60 max-w-xs">Handcrafted leather goods, premium outerwear, and curated footwear.</p>
             </div>
-          ) : featured.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {featured.map((p) => (
-                <ProductCard key={p._id} product={p} />
-              ))}
-            </div>
-          ) : null}
+            <Link href="/shop?category=Clothing"
+              className="inline-flex items-center gap-2 mt-5 text-xs font-bold text-white px-4 py-2 rounded-lg w-max transition-colors"
+              style={{ background: '#7c3aed' }}>
+              Shop Fashion <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* ── TRENDING OFFERS ── */}
+      {/* ── Trending Products ── */}
       {trending.length > 0 && (
         <section className="container mx-auto px-4 py-4">
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 md:p-6 shadow-sm">
-            <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-4 mb-6">
-              <div>
-                <h2 className="text-lg md:text-xl font-black tracking-tight text-[var(--foreground)]">
-                  ⚡ Trending Offers &amp; Best Sellers
-                </h2>
-                <p className="text-xs text-[var(--foreground-muted)] mt-0.5">
-                  Popular products searched and added to bags right now
-                </p>
-              </div>
-              <Link
-                href="/shop?deals=true"
-                className="text-xs md:text-sm font-bold text-blue-500 hover:text-blue-400"
-              >
-                View Trending →
-              </Link>
-            </div>
+          <div className="rounded-2xl p-5 md:p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <SectionHeader title="Trending Now" sub="Popular products right now" href="/shop" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {trending.map((p) => (
-                <ProductCard key={p._id} product={p} />
-              ))}
+              {trending.map(p => <ProductCard key={p._id} product={p} />)}
             </div>
           </div>
         </section>
       )}
 
-      {/* ── RECENTLY VIEWED (FLIPKART RECOMMENDATION STRIP) ── */}
+      {/* ── Recently Viewed ── */}
       {recentlyViewed.length > 0 && (
         <section className="container mx-auto px-4 py-4">
-          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 md:p-6 shadow-sm">
-            <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-4 mb-6">
-              <h2 className="text-lg md:text-xl font-black tracking-tight text-[var(--foreground)] flex items-center gap-2">
-                <span>🕒</span> Recently Viewed by You
-              </h2>
-            </div>
+          <div className="rounded-2xl p-5 md:p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <SectionHeader title="Recently Viewed" sub="Products you checked out" href="/shop" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {recentlyViewed.map((p) => (
-                <ProductCard key={p._id} product={p} />
-              ))}
+              {recentlyViewed.map(p => <ProductCard key={p._id} product={p} />)}
             </div>
           </div>
         </section>
       )}
 
-      {/* ── TRENDING CATEGORIES SHOWCASE ── */}
-      <section className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Tech card */}
-          <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-blue-900 to-indigo-900 border border-blue-500/30 p-8 flex flex-col justify-between min-h-[220px]">
-            <div className="space-y-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-300">New In Tech</span>
-              <h3 className="text-2xl font-black text-white">Studio Audio & Gadgets</h3>
-              <p className="text-xs text-zinc-300 max-w-xs">Anodized aluminum interfaces, active noise cancellation, and mechanical keyboards.</p>
+      {/* ── Footer ── */}
+      <footer className="mt-auto py-12" style={{ borderTop: '1px solid var(--border)', background: 'var(--surface-sunken)' }}>
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            {/* Brand */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+                  <ShoppingBag className="w-4 h-4 text-white" strokeWidth={2.5} />
+                </div>
+                <span className="font-extrabold text-base tracking-tight" style={{ color: 'var(--foreground)' }}>
+                  ShopVault
+                </span>
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--foreground-muted)' }}>
+                India&apos;s premier multi-vendor marketplace with verified seller storefronts and purchase protection.
+              </p>
+              <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--foreground-muted)' }}>
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <span>256-bit SSL Encrypted &amp; Secure</span>
+              </div>
             </div>
-            <Link href="/shop?category=Electronics" className="inline-block mt-4 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg w-max transition-colors">
-              Explore Tech Drops →
-            </Link>
-          </div>
 
-          {/* Lifestyle card */}
-          <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-purple-900 to-pink-900 border border-purple-500/30 p-8 flex flex-col justify-between min-h-[220px]">
-            <div className="space-y-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-pink-300">Modern Living</span>
-              <h3 className="text-2xl font-black text-white">Timeless Wear & Objects</h3>
-              <p className="text-xs text-zinc-300 max-w-xs">Handcrafted leather goods, Swiss movement chronographs, and organic merino wool.</p>
+            {/* Shop */}
+            <div>
+              <div className="text-sm font-bold mb-3" style={{ color: 'var(--foreground)' }}>Shop</div>
+              <ul className="space-y-2 text-xs" style={{ color: 'var(--foreground-muted)' }}>
+                {[
+                  ['All Products', '/shop'],
+                  ['Electronics', '/shop?category=Electronics'],
+                  ['Clothing', '/shop?category=Clothing'],
+                  ['Top Deals', '/shop?deals=true'],
+                ].map(([label, href]) => (
+                  <li key={href}>
+                    <Link href={href} className="hover:text-blue-400 transition-colors">{label}</Link>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <Link href="/shop?category=Apparel" className="inline-block mt-4 text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg w-max transition-colors">
-              Explore Lifestyle →
-            </Link>
-          </div>
-        </div>
-      </section>
 
-      {/* ── FOOTER ── */}
-      <footer className="mt-auto border-t border-[var(--border)] bg-[var(--surface-sunken)] py-12 text-xs text-[var(--foreground-muted)]">
-        <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-lg bg-blue-600 text-white font-black text-sm flex items-center justify-center">S</span>
-              <span className="font-black text-base text-[var(--foreground)] tracking-tight">SHOPVAULT</span>
+            {/* Account */}
+            <div>
+              <div className="text-sm font-bold mb-3" style={{ color: 'var(--foreground)' }}>Account</div>
+              <ul className="space-y-2 text-xs" style={{ color: 'var(--foreground-muted)' }}>
+                {[
+                  ['Sign In', '/login'],
+                  ['Register', '/register'],
+                  ['My Orders', '/dashboard/customer'],
+                  ['Sell on ShopVault', '/dashboard/vendor'],
+                ].map(([label, href]) => (
+                  <li key={href}>
+                    <Link href={href} className="hover:text-blue-400 transition-colors">{label}</Link>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <p className="leading-relaxed">
-              India&apos;s premier multi-vendor curated ecommerce destination with escrow purchase protection and verified seller storefronts.
-            </p>
+
+            {/* Support */}
+            <div>
+              <div className="text-sm font-bold mb-3" style={{ color: 'var(--foreground)' }}>Support</div>
+              <ul className="space-y-2 text-xs" style={{ color: 'var(--foreground-muted)' }}>
+                {[
+                  ['Track Order', '/dashboard/customer'],
+                  ['Returns & Refunds', '/dashboard/customer'],
+                  ['Contact Us', '/shop'],
+                  ['FAQ', '/shop'],
+                ].map(([label, href]) => (
+                  <li key={href}>
+                    <Link href={href} className="hover:text-blue-400 transition-colors">{label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          <div>
-            <div className="font-bold text-sm text-[var(--foreground)] mb-3">About</div>
-            <ul className="space-y-2">
-              <li><Link href="/shop" className="hover:text-[var(--foreground)] transition-colors">About Us</Link></li>
-              <li><Link href="/shop" className="hover:text-[var(--foreground)] transition-colors">Merchant Guidelines</Link></li>
-              <li><Link href="/shop" className="hover:text-[var(--foreground)] transition-colors">Escrow Security</Link></li>
-              <li><Link href="/shop" className="hover:text-[var(--foreground)] transition-colors">Careers</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <div className="font-bold text-sm text-[var(--foreground)] mb-3">Help & Support</div>
-            <ul className="space-y-2">
-              <li><Link href="/dashboard/customer" className="hover:text-[var(--foreground)] transition-colors">Track Order</Link></li>
-              <li><Link href="/dashboard/customer" className="hover:text-[var(--foreground)] transition-colors">Returns & Refunds</Link></li>
-              <li><Link href="/cart" className="hover:text-[var(--foreground)] transition-colors">Shipping Rates</Link></li>
-              <li><Link href="/dashboard/customer" className="hover:text-[var(--foreground)] transition-colors">FAQ</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <div className="font-bold text-sm text-[var(--foreground)] mb-3">Policy</div>
-            <ul className="space-y-2">
-              <li><span className="hover:text-[var(--foreground)] cursor-pointer">Terms of Use</span></li>
-              <li><span className="hover:text-[var(--foreground)] cursor-pointer">Security & Encryption</span></li>
-              <li><span className="hover:text-[var(--foreground)] cursor-pointer">Privacy Notice</span></li>
-              <li><span className="hover:text-[var(--foreground)] cursor-pointer">Grievance Officer</span></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="container mx-auto px-4 pt-6 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>© {new Date().getFullYear()} ShopVault Internet Private Limited. All rights reserved.</div>
-          <div className="flex items-center gap-4">
-            <span>🔒 256-Bit SSL Encrypted</span>
-            <span>⚡ Escrow Protected</span>
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+            style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--foreground-muted)' }}>
+            <span>© {new Date().getFullYear()} ShopVault. All rights reserved.</span>
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1">
+                <Shield className="w-3 h-3" /> Privacy Policy
+              </span>
+              <span>Terms of Use</span>
+            </div>
           </div>
         </div>
       </footer>

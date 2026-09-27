@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authService } from '@/lib/auth';
+import { authService, AuthResponse } from '@/lib/auth';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -11,6 +11,7 @@ export default function VerifyOTPPage() {
     const { refreshUser } = useAuth();
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [email, setEmail] = useState('');
+    const [otpId, setOtpId] = useState('');
     const [loading, setLoading] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
     const [countdown, setCountdown] = useState(0);
@@ -20,6 +21,7 @@ export default function VerifyOTPPage() {
     useEffect(() => {
         const stored = localStorage.getItem('pendingVerifyEmail') || '';
         setEmail(stored);
+        setOtpId(localStorage.getItem('pendingVerifyOtpId') || '');
     }, []);
 
     useEffect(() => {
@@ -68,12 +70,13 @@ export default function VerifyOTPPage() {
 
         setLoading(true);
         try {
-            const res = await authService.verifyOTP({ email, otp: otpString });
+            const res = await authService.verifyOTP({ email, otp: otpString, otpId });
             if (res.success) {
                 setVerified(true);
                 refreshUser();
                 toast.success('Email verified successfully!');
                 localStorage.removeItem('pendingVerifyEmail');
+                localStorage.removeItem('pendingVerifyOtpId');
                 setTimeout(() => router.push('/shop'), 1800);
             } else {
                 toast.error(res.message);
@@ -96,6 +99,11 @@ export default function VerifyOTPPage() {
             const res = await authService.resendOTP(email);
             if (res.success) {
                 toast.success('New verification code sent');
+                const latestOtpId = (res as AuthResponse & { otpId?: string }).otpId;
+                if (latestOtpId) {
+                    setOtpId(latestOtpId);
+                    localStorage.setItem('pendingVerifyOtpId', latestOtpId);
+                }
                 setCountdown(60);
                 setOtp(['', '', '', '', '', '']);
                 inputRefs.current[0]?.focus();

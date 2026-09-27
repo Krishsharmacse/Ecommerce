@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import {
+    ShoppingBag, MapPin, Package, Zap, ShieldCheck, X,
+    Trash2, Plus, Minus, ArrowRight, Lock, Check, Clock
+} from 'lucide-react';
 
 interface CartItem {
     _id: string;
@@ -115,7 +119,7 @@ export default function CartPage() {
         saveCart(updated);
         setCart(updated);
         window.dispatchEvent(new Event('cart-updated'));
-        toast('Item removed from cart', { icon: '🗑️' });
+        toast.success('Item removed from cart');
     };
 
     const saveForLater = (id: string) => {
@@ -247,8 +251,8 @@ export default function CartPage() {
     if (cart.length === 0) {
         return (
             <div className="container mx-auto px-4 py-20 flex-1 flex flex-col items-center justify-center text-center">
-                <div className="w-24 h-24 rounded-3xl bg-[var(--surface-elevated)] border border-[var(--border)] flex items-center justify-center text-5xl mb-6 shadow-xl">
-                    🛍️
+                <div className="w-24 h-24 rounded-3xl bg-[var(--surface-elevated)] border border-[var(--border)] flex items-center justify-center text-blue-500 mb-6 shadow-xl">
+                    <ShoppingBag className="w-12 h-12 stroke-[1.5]" />
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[var(--foreground)] mb-2">
                     Your shopping cart is empty
@@ -258,9 +262,10 @@ export default function CartPage() {
                 </p>
                 <Link
                     href="/shop"
-                    className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold text-sm transition-all shadow-lg shadow-blue-500/25"
+                    className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold text-sm transition-all shadow-lg shadow-blue-500/25 inline-flex items-center gap-2"
                 >
-                    Explore Deals Now
+                    <span>Explore Catalog</span>
+                    <ArrowRight className="w-4 h-4" />
                 </Link>
             </div>
         );
@@ -288,7 +293,9 @@ export default function CartPage() {
                         {/* Flipkart-Style Deliver To Card */}
                         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
                             <div className="flex items-center gap-3">
-                                <span className="text-xl">📍</span>
+                                <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center flex-shrink-0">
+                                    <MapPin className="w-4 h-4" />
+                                </div>
                                 <div>
                                     <div className="text-xs text-[var(--foreground-muted)] font-medium">
                                         Deliver to: <strong className="text-[var(--foreground)]">{user?.firstname || 'Valued Customer'}, {pincode}</strong>
@@ -324,7 +331,7 @@ export default function CartPage() {
                                             {imgUrl ? (
                                                 <img src={imgUrl} alt={item.name} className="w-full h-full object-cover" />
                                             ) : (
-                                                <span className="text-3xl">📦</span>
+                                                <Package className="w-8 h-8 text-zinc-500 stroke-[1.2]" />
                                             )}
                                         </div>
 
@@ -358,8 +365,8 @@ export default function CartPage() {
                                                 </span>
                                             </div>
 
-                                            <div className="text-[11px] text-emerald-400 font-medium">
-                                                ⚡ Free Delivery by Tomorrow
+                                            <div className="text-[11px] text-emerald-400 font-medium inline-flex items-center gap-1">
+                                                <Zap className="w-3 h-3 fill-emerald-400" /> Free Delivery by Tomorrow
                                             </div>
 
                                             {/* Actions: Stepper + Save for Later + Remove */}
@@ -469,7 +476,9 @@ export default function CartPage() {
 
                         {/* Flipkart Trust Badge Strip */}
                         <div className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--border)] flex items-center gap-3 text-xs text-[var(--foreground-secondary)]">
-                            <span className="text-2xl">🛡️</span>
+                            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center flex-shrink-0">
+                                <ShieldCheck className="w-5 h-5" />
+                            </div>
                             <div className="leading-snug">
                                 <strong className="text-[var(--foreground)]">100% Safe Payments</strong>
                                 <p className="text-[11px] text-[var(--foreground-muted)] mt-0.5">
@@ -504,9 +513,10 @@ export default function CartPage() {
                             <button
                                 type="button"
                                 onClick={() => setCheckoutModalOpen(false)}
-                                className="text-[var(--foreground-muted)] hover:text-[var(--foreground)] text-xl"
+                                className="w-8 h-8 rounded-full bg-[var(--surface-elevated)] border border-[var(--border)] flex items-center justify-center text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+                                aria-label="Close checkout"
                             >
-                                ✕
+                                <X className="w-4 h-4" />
                             </button>
                         </div>
 

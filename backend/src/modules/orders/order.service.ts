@@ -2,6 +2,7 @@ import { ConflictError, NotFoundError } from "../../lib/errors.js";
 import { OrderRepository } from "./order.repository.js";
 import { prisma } from "../../lib/prisma.js";
 import { wsPublish } from "../../lib/ws.js";
+import { sendOrderConfirmationEmail } from "../../services/order-email.service.js";
 
 const orderRepository = new OrderRepository();
 
@@ -12,7 +13,11 @@ export class OrderService {
       if (existing) throw new ConflictError("An order already exists for this idempotency key");
     }
     try {
-      return await orderRepository.createFromCartTransaction(userId, shippingAddress, paymentMethod, idempotencyKey);
+      const order = await orderRepository.createFromCartTransaction(userId, shippingAddress, paymentMethod, idempotencyKey);
+      if (order.status === "CONFIRMED") {
+        void sendOrderConfirmationEmail(order.id);
+      }
+      return order;
     } catch (error) {
       if (error instanceof Error && error.message.includes("Unique constraint")) {
         throw new ConflictError("An order already exists for this idempotency key");

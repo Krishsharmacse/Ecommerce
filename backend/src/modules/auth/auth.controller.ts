@@ -28,6 +28,13 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
     });
   } catch (error) { next(error); }
 }
+export async function resendVerification(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { email } = forgotPasswordSchema.parse(req.body);
+    const result = await authService.resendVerification(email);
+    res.json({ success: true, message: "If the account needs verification, a new code was sent", ...result });
+  } catch (error) { next(error); }
+}
 export async function refresh(req: Request, res: Response, next: NextFunction): Promise<void> { try { const { refreshToken } = refreshSchema.parse(req.body); res.json({ success: true, tokens: await authService.refresh(refreshToken) }); } catch (error) { next(error); } }
 export async function logout(req: Request, res: Response, next: NextFunction): Promise<void> { try { const { refreshToken } = refreshSchema.parse(req.body); await authService.logout(refreshToken); res.status(204).send(); } catch (error) { next(error); } }
 export async function forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> { try { const { email } = forgotPasswordSchema.parse(req.body); await authService.requestPasswordReset(email); res.json({ success: true, message: "If the account exists, reset instructions were sent" }); } catch (error) { next(error); } }

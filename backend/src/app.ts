@@ -82,3 +82,4 @@ app.use(env.API_PREFIX, apiRoutes);
 // ─── 404 & Error handlers ─────────────────────────────────────────────────────
 app.use(notFound);
 app.use(errorHandler);
+export default app;

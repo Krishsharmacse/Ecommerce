@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { oauthService } from '@/lib/auth';
 import toast from 'react-hot-toast';
+import { Lock, Shield, Zap, CreditCard, Sparkles, KeyRound, ShieldCheck, Mail } from 'lucide-react';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -59,7 +60,7 @@ export default function LoginPage() {
             const res = await login(form.email.trim(), form.password);
 
             if (res.requires2FA && res.tempToken) {
-                toast('Two-factor code required', { icon: '🛡️' });
+                toast.success('Two-factor code required');
                 router.push(`/verify-2fa?tempToken=${encodeURIComponent(res.tempToken)}`);
                 return;
             }
@@ -75,7 +76,7 @@ export default function LoginPage() {
                 toast.success(res.message || 'Welcome back!');
                 if (res.needsVerification) {
                     localStorage.setItem('pendingVerifyEmail', form.email.trim());
-                    toast('Please verify your email address', { icon: '✉️' });
+                    toast.success('Please verify your email address');
                     router.push('/verify-otp');
                 } else {
                     const redirectParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('redirect') : null;
@@ -114,8 +115,8 @@ export default function LoginPage() {
     };
 
     return (
-        <div style={{ minHeight: 'calc(100vh - var(--navbar-h))', display: 'grid', gridTemplateColumns: '1fr', background: 'var(--background)' }}
-             className="lg:grid-cols-[1fr_1fr]">
+           <div style={{ minHeight: 'calc(100vh - var(--navbar-h))', display: 'grid', gridTemplateColumns: '1fr', background: 'var(--background)' }}
+               className="auth-layout lg:grid-cols-[1fr_1fr]">
 
             {/* ── Left Decorative Panel ── */}
             <div className="hidden lg:flex" style={{
@@ -200,12 +201,13 @@ export default function LoginPage() {
                                 animation: 'spin 20s linear infinite',
                             }} />
                             {[
-                                { icon: '🔒', angle: 0, r: 55 },
-                                { icon: '⚡', angle: 72, r: 55 },
-                                { icon: '🛡️', angle: 144, r: 55 },
-                                { icon: '💳', angle: 216, r: 55 },
-                                { icon: '✦', angle: 288, r: 55 },
+                                { icon: Lock, angle: 0, r: 55 },
+                                { icon: Zap, angle: 72, r: 55 },
+                                { icon: Shield, angle: 144, r: 55 },
+                                { icon: CreditCard, angle: 216, r: 55 },
+                                { icon: Sparkles, angle: 288, r: 55 },
                             ].map((item, i) => {
+                                const Icon = item.icon;
                                 const rad = (item.angle * Math.PI) / 180;
                                 const x = 70 + item.r * Math.sin(rad);
                                 const y = 70 - item.r * Math.cos(rad);
@@ -217,13 +219,14 @@ export default function LoginPage() {
                                         width: '36px', height: '36px',
                                         borderRadius: '10px',
                                         display: 'grid', placeItems: 'center',
-                                        fontSize: '16px',
                                         background: 'rgba(255,255,255,0.05)',
                                         border: '1px solid rgba(255,255,255,0.1)',
                                         backdropFilter: 'blur(8px)',
                                         boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
                                         animation: `loginFloat ${2.5 + i * 0.4}s ease-in-out infinite ${i * 0.3}s`,
-                                    }}>{item.icon}</div>
+                                    }}>
+                                        <Icon className="w-4 h-4 text-blue-400" />
+                                    </div>
                                 );
                             })}
                             <div style={{
@@ -232,11 +235,12 @@ export default function LoginPage() {
                                 width: '56px', height: '56px',
                                 borderRadius: '16px',
                                 display: 'grid', placeItems: 'center',
-                                fontSize: '24px',
                                 background: 'linear-gradient(135deg, rgba(59,130,246,0.3), rgba(139,92,246,0.3))',
                                 border: '1px solid rgba(59,130,246,0.4)',
                                 boxShadow: '0 0 30px rgba(59,130,246,0.3)',
-                            }}>🔑</div>
+                            }}>
+                                <KeyRound className="w-6 h-6 text-blue-400" />
+                            </div>
                         </div>
 
                         <h2 style={{
@@ -286,23 +290,26 @@ export default function LoginPage() {
                     {/* Feature pills */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                         {[
-                            { icon: '🔒', label: 'Escrow Protected' },
-                            { icon: '🛡️', label: '2FA Security' },
-                            { icon: '⚡', label: '48hr Delivery' },
-                            { icon: '✦', label: 'Zero Hidden Fees' },
-                        ].map((f) => (
-                            <div key={f.label} style={{
-                                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                                padding: '0.6rem 0.75rem',
-                                borderRadius: '10px',
-                                background: 'rgba(255,255,255,0.04)',
-                                border: '1px solid rgba(255,255,255,0.07)',
-                                backdropFilter: 'blur(8px)',
-                            }}>
-                                <span style={{ fontSize: '0.9rem' }}>{f.icon}</span>
-                                <span style={{ fontSize: '0.72rem', fontWeight: 500, color: 'rgba(255,255,255,0.65)' }}>{f.label}</span>
-                            </div>
-                        ))}
+                            { icon: Lock, label: 'Escrow Protected' },
+                            { icon: ShieldCheck, label: '2FA Security' },
+                            { icon: Zap, label: '48hr Delivery' },
+                            { icon: Sparkles, label: 'Zero Hidden Fees' },
+                        ].map((f) => {
+                            const Icon = f.icon;
+                            return (
+                                <div key={f.label} style={{
+                                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                    padding: '0.6rem 0.75rem',
+                                    borderRadius: '10px',
+                                    background: 'rgba(255,255,255,0.04)',
+                                    border: '1px solid rgba(255,255,255,0.07)',
+                                    backdropFilter: 'blur(8px)',
+                                }}>
+                                    <Icon className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                                    <span style={{ fontSize: '0.72rem', fontWeight: 500, color: 'rgba(255,255,255,0.65)' }}>{f.label}</span>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>

@@ -16,5 +16,6 @@ export const webhookRetryQueue = new Queue("webhook-retry", {
  * Call this when webhook processing fails the first time.
  */
 export function enqueueWebhookRetry(eventId: string): Promise<unknown> {
-  return webhookRetryQueue.add("process", { eventId }, { jobId: `webhook:${eventId}` });
+  const safeJobId = `webhook_${eventId.replace(/[:]/g, "_")}`;
+  return webhookRetryQueue.add("process", { eventId }, { jobId: safeJobId });
 }

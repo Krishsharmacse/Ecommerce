@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { oauthService } from '@/lib/auth';
 import toast from 'react-hot-toast';
+import { UserPlus, Mail, Rocket, Lock, ShieldCheck, Zap, ShoppingBag, Eye, EyeOff, Check, AlertTriangle } from 'lucide-react';
 
 const REQUIREMENTS = [
     { label: 'At least 8 characters', test: (p: string) => p.length >= 8 },
@@ -62,6 +63,9 @@ export default function RegisterPage() {
             const res = await register({ ...form, role: 'customer' });
             if (res.success) {
                 localStorage.setItem('pendingVerifyEmail', form.email);
+                if (res.verification?.otpId) {
+                    localStorage.setItem('pendingVerifyOtpId', res.verification.otpId);
+                }
                 setDone(true);
                 toast.success('Account created! Please enter verification code.');
                 router.push('/verify-otp');
@@ -102,9 +106,11 @@ export default function RegisterPage() {
                         background: 'linear-gradient(135deg, rgba(34,197,94,0.2), rgba(16,185,129,0.1))',
                         border: '2px solid rgba(34,197,94,0.3)',
                         display: 'grid', placeItems: 'center',
-                        fontSize: '1.75rem', margin: '0 auto 1.5rem',
+                        margin: '0 auto 1.5rem',
                         boxShadow: '0 0 30px rgba(34,197,94,0.2)',
-                    }}>✉️</div>
+                    }}>
+                        <Mail className="w-8 h-8 text-emerald-400" />
+                    </div>
                     <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.5rem', color: 'var(--foreground)', marginBottom: '0.75rem' }}>
                         Account Created!
                     </h2>
@@ -127,8 +133,8 @@ export default function RegisterPage() {
     }
 
     return (
-        <div style={{ minHeight: 'calc(100vh - var(--navbar-h))', display: 'grid', gridTemplateColumns: '1fr', background: 'var(--background)' }}
-             className="lg:grid-cols-[1fr_1fr]">
+           <div style={{ minHeight: 'calc(100vh - var(--navbar-h))', display: 'grid', gridTemplateColumns: '1fr', background: 'var(--background)' }}
+               className="auth-layout lg:grid-cols-[1fr_1fr]">
 
             {/* ── Left Decorative Panel ── */}
             <div className="hidden lg:flex" style={{
@@ -211,46 +217,50 @@ export default function RegisterPage() {
 
                         {/* Steps */}
                         {[
-                            { step: '01', icon: '📝', title: 'Create your account', desc: 'Pick your role and set up your profile in under 60 seconds' },
-                            { step: '02', icon: '✉️', title: 'Verify your email', desc: 'We send a secure OTP to confirm your identity' },
-                            { step: '03', icon: '🚀', title: 'Start immediately', desc: 'Browse, shop, or open your storefront right away' },
-                        ].map((item, i) => (
-                            <div key={i} style={{
-                                display: 'flex', gap: '1rem',
-                                marginBottom: i < 2 ? '1.25rem' : 0,
-                                position: 'relative',
-                            }}>
-                                {/* Line connector */}
-                                {i < 2 && (
+                            { step: '01', icon: UserPlus, title: 'Create your account', desc: 'Pick your role and set up your profile in under 60 seconds' },
+                            { step: '02', icon: Mail, title: 'Verify your email', desc: 'We send a secure OTP to confirm your identity' },
+                            { step: '03', icon: Rocket, title: 'Start immediately', desc: 'Browse, shop, or open your storefront right away' },
+                        ].map((item, i) => {
+                            const Icon = item.icon;
+                            return (
+                                <div key={i} style={{
+                                    display: 'flex', gap: '1rem',
+                                    marginBottom: i < 2 ? '1.25rem' : 0,
+                                    position: 'relative',
+                                }}>
+                                    {/* Line connector */}
+                                    {i < 2 && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            left: '19px', top: '40px',
+                                            width: '2px', height: 'calc(100% + 0.5rem)',
+                                            background: 'linear-gradient(to bottom, rgba(59,130,246,0.3), rgba(59,130,246,0.05))',
+                                        }} />
+                                    )}
                                     <div style={{
-                                        position: 'absolute',
-                                        left: '19px', top: '40px',
-                                        width: '2px', height: 'calc(100% + 0.5rem)',
-                                        background: 'linear-gradient(to bottom, rgba(59,130,246,0.3), rgba(59,130,246,0.05))',
-                                    }} />
-                                )}
-                                <div style={{
-                                    width: '40px', height: '40px', borderRadius: '12px', flexShrink: 0,
-                                    background: 'rgba(255,255,255,0.05)',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    display: 'grid', placeItems: 'center',
-                                    fontSize: '18px',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                                    backdropFilter: 'blur(8px)',
-                                    animation: `float ${3 + i * 0.5}s ease-in-out infinite ${i * 0.4}s`,
-                                }}>{item.icon}</div>
-                                <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
-                                        <span style={{
-                                            fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.06em',
-                                            color: 'var(--accent-400)', fontFamily: 'var(--font-mono)',
-                                        }}>{item.step}</span>
-                                        <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#fff' }}>{item.title}</span>
+                                        width: '40px', height: '40px', borderRadius: '12px', flexShrink: 0,
+                                        background: 'rgba(255,255,255,0.05)',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        display: 'grid', placeItems: 'center',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                        backdropFilter: 'blur(8px)',
+                                        animation: `float ${3 + i * 0.5}s ease-in-out infinite ${i * 0.4}s`,
+                                    }}>
+                                        <Icon className="w-5 h-5 text-blue-400" />
                                     </div>
-                                    <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>{item.desc}</p>
+                                    <div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+                                            <span style={{
+                                                fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.06em',
+                                                color: 'var(--accent-400)', fontFamily: 'var(--font-mono)',
+                                            }}>{item.step}</span>
+                                            <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#fff' }}>{item.title}</span>
+                                        </div>
+                                        <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>{item.desc}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -278,16 +288,27 @@ export default function RegisterPage() {
                         ))}
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        {['🔒 256-bit SSL', '🛡️ SOC 2 Ready', '⚡ 99.9% Uptime'].map(t => (
-                            <div key={t} style={{
-                                flex: 1, padding: '0.5rem 0.4rem',
-                                borderRadius: '8px',
-                                background: 'rgba(255,255,255,0.03)',
-                                border: '1px solid rgba(255,255,255,0.06)',
-                                textAlign: 'center',
-                                fontSize: '0.65rem', color: 'rgba(255,255,255,0.45)',
-                            }}>{t}</div>
-                        ))}
+                        {[
+                            { icon: Lock, label: '256-bit SSL' },
+                            { icon: ShieldCheck, label: 'SOC 2 Ready' },
+                            { icon: Zap, label: '99.9% Uptime' },
+                        ].map((b) => {
+                            const Icon = b.icon;
+                            return (
+                                <div key={b.label} style={{
+                                    flex: 1, padding: '0.5rem 0.4rem',
+                                    borderRadius: '8px',
+                                    background: 'rgba(255,255,255,0.03)',
+                                    border: '1px solid rgba(255,255,255,0.06)',
+                                    textAlign: 'center',
+                                    fontSize: '0.65rem', color: 'rgba(255,255,255,0.45)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem',
+                                }}>
+                                    <Icon className="w-3 h-3 text-blue-400" />
+                                    <span>{b.label}</span>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
@@ -378,8 +399,10 @@ export default function RegisterPage() {
                         <div style={{
                             width: '36px', height: '36px', borderRadius: '10px',
                             background: 'var(--primary-subtle)',
-                            display: 'grid', placeItems: 'center', fontSize: '1.1rem', flexShrink: 0
-                        }}>🛍️</div>
+                            display: 'grid', placeItems: 'center', flexShrink: 0
+                        }}>
+                            <ShoppingBag className="w-4 h-4 text-blue-500" />
+                        </div>
                         <div style={{ flex: 1 }}>
                             <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--foreground)' }}>Customer Account</div>
                             <div style={{ fontSize: '0.72rem', color: 'var(--foreground-muted)', lineHeight: 1.4 }}>

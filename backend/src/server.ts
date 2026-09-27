@@ -11,6 +11,13 @@ httpServer.listen(env.PORT, () => {
   logger.info({ port: env.PORT }, "ShopVault API + WebSocket server started");
 });
 
+// Auto-start BullMQ workers unless running in standalone worker process
+if (process.env.RUN_WORKERS !== "false") {
+  import("./workers/index.js").catch((err) => {
+    logger.error({ err }, "Failed to start BullMQ workers in server process");
+  });
+}
+
 // ─── Graceful shutdown ────────────────────────────────────────────────────────
 function shutdown(signal: string) {
   logger.info({ signal }, "Shutdown signal received, closing gracefully...");

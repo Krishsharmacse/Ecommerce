@@ -26,16 +26,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             toastOptions={{
               duration: 3500,
               style: {
-                background: '#1a1a1a',
-                color: '#f0f0f0',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '12px',
+                background: '#ffffff',
+                color: '#101828',
+                border: '1px solid #e4e7ec',
+                borderRadius: '10px',
                 fontSize: '0.875rem',
-                fontWeight: 500,
-                boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
+                fontWeight: 600,
+                boxShadow: '0 8px 24px rgba(16,24,40,0.1)',
               },
-              success: { iconTheme: { primary: '#3b82f6', secondary: '#fff' } },
-              error:   { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
+              success: { iconTheme: { primary: '#039855', secondary: '#fff' } },
+              error:   { iconTheme: { primary: '#d92d20', secondary: '#fff' } },
             }}
           />
         </AuthProvider>
