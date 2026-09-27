@@ -33,10 +33,25 @@ googleAuthRoutes.get("/google", (req: Request, res: Response) => {
     return;
   }
 
-  // Generate a cryptographically random state token and persist it in Redis
+  // Determine return frontend URL from explicit query param, referer header, or default
+  const queryOrigin = typeof req.query.origin === "string" ? req.query.origin : null;
+  const referer = req.get("referer");
+  let targetFrontendUrl = env.FRONTEND_URL;
+  if (queryOrigin && (queryOrigin.startsWith("http://") || queryOrigin.startsWith("https://"))) {
+    try {
+      targetFrontendUrl = new URL(queryOrigin).origin;
+    } catch {}
+  } else if (referer) {
+    try {
+      targetFrontendUrl = new URL(referer).origin;
+    } catch {}
+  }
+
+  // Generate a cryptographically random state token and persist it in Redis with client origin
   const state       = crypto.randomBytes(24).toString("hex");
   const stateKey    = `oauth:state:${state}`;
-  redis.set(stateKey, "1", "EX", STATE_TTL_SECS).catch((err) =>
+  const statePayload = JSON.stringify({ targetFrontendUrl });
+  redis.set(stateKey, statePayload, "EX", STATE_TTL_SECS).catch((err) =>
     logger.error({ err }, "google: failed to store OAuth state in Redis")
   );
 
@@ -60,24 +75,30 @@ googleAuthRoutes.get("/google/callback", async (req: Request, res: Response) => 
   const state = req.query.state as string | undefined;
   const error = req.query.error as string | undefined;
 
-  // User cancelled
-  if (error || !code) {
-    res.redirect(`${env.FRONTEND_URL}/login?error=oauth_cancelled`);
-    return;
-  }
-
-  // Verify CSRF state
-  if (!state) {
+  let targetFrontendUrl = env.FRONTEND_URL;
+  if (state) {
+    const stateKey    = `oauth:state:${state}`;
+    const storedState = await redis.get(stateKey);
+    if (storedState) {
+      try {
+        const parsed = JSON.parse(storedState);
+        if (parsed.targetFrontendUrl) targetFrontendUrl = parsed.targetFrontendUrl;
+      } catch {}
+      await redis.del(stateKey); // consume: one-time use
+    } else {
+      res.redirect(`${env.FRONTEND_URL}/login?error=invalid_state`);
+      return;
+    }
+  } else {
     res.redirect(`${env.FRONTEND_URL}/login?error=missing_state`);
     return;
   }
-  const stateKey    = `oauth:state:${state}`;
-  const storedState = await redis.get(stateKey);
-  if (!storedState) {
-    res.redirect(`${env.FRONTEND_URL}/login?error=invalid_state`);
+
+  // User cancelled
+  if (error || !code) {
+    res.redirect(`${targetFrontendUrl}/login?error=oauth_cancelled`);
     return;
   }
-  await redis.del(stateKey); // consume: one-time use
 
   try {
     const redirectUri = getRedirectUri(req);
@@ -194,10 +215,10 @@ googleAuthRoutes.get("/google/callback", async (req: Request, res: Response) => 
       ticket,
       userId: user.id,
     });
-    res.redirect(`${env.FRONTEND_URL}/auth/callback?${params.toString()}`);
+    res.redirect(`${targetFrontendUrl}/auth/callback?${params.toString()}`);
   } catch (err) {
     logger.error({ err }, "google: OAuth callback error");
-    res.redirect(`${env.FRONTEND_URL}/login?error=server_error`);
+    res.redirect(`${targetFrontendUrl}/login?error=server_error`);
   }
 });
 

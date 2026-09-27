@@ -12,21 +12,27 @@ function CallbackContent() {
     const processedRef = useRef(false);
 
     useEffect(() => {
-        const ticket = params.get('ticket');
-        const token = params.get('token');
-        const error = params.get('error');
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        const ticket = params.get('ticket') || urlParams?.get('ticket');
+        const token = params.get('token') || urlParams?.get('token');
+        const error = params.get('error') || urlParams?.get('error');
 
         if (error) {
             setStatus('error');
             toast.error('Google sign-in failed. Please try again.');
-            setTimeout(() => router.push('/login'), 2000);
+            setTimeout(() => { window.location.href = '/login'; }, 1500);
             return;
         }
 
         if (!ticket && !token) {
-            setStatus('error');
-            router.push('/login');
-            return;
+            const timer = setTimeout(() => {
+                const retryTicket = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('ticket') : null;
+                if (!retryTicket) {
+                    setStatus('error');
+                    window.location.href = '/login';
+                }
+            }, 1500);
+            return () => clearTimeout(timer);
         }
 
         // Prevent double execution in React StrictMode
@@ -37,11 +43,11 @@ function CallbackContent() {
             setStatus('success');
             const name = user?.firstname || user?.firstName || 'back';
             toast.success(`Welcome, ${name}! 🎉`);
+            const redirect = localStorage.getItem('auth_redirect') || '/shop';
+            localStorage.removeItem('auth_redirect');
             setTimeout(() => {
-                const redirect = localStorage.getItem('auth_redirect') || '/shop';
-                localStorage.removeItem('auth_redirect');
-                router.push(redirect);
-            }, 1000);
+                window.location.href = redirect;
+            }, 600);
         };
 
         if (ticket) {
@@ -51,7 +57,6 @@ function CallbackContent() {
                 })
                 .catch((err) => {
                     console.error('OAuth ticket exchange failed:', err);
-                    // Check if token was already set by a parallel request
                     const existingToken = localStorage.getItem('token');
                     if (existingToken) {
                         handleSuccess();
@@ -59,7 +64,7 @@ function CallbackContent() {
                     }
                     setStatus('error');
                     toast.error('OAuth ticket expired or already used.');
-                    setTimeout(() => router.push('/login'), 2000);
+                    setTimeout(() => { window.location.href = '/login'; }, 2000);
                 });
         } else if (token) {
             localStorage.setItem('token', token);

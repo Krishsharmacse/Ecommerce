@@ -261,6 +261,9 @@ export const twoFactorService = {
 // OAuth helper — redirect to backend Google login
 export const oauthService = {
     loginWithGoogle: () => {
-        window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'}/auth/google`;
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+        const url = `${apiUrl}/auth/google?origin=${encodeURIComponent(origin)}`;
+        window.location.href = url;
     },
 };
