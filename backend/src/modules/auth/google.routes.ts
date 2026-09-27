@@ -214,17 +214,42 @@ googleAuthRoutes.post("/oauth/exchange", async (req: Request, res: Response) => 
     res.status(400).json({ success: false, message: "Invalid, expired, or already consumed OAuth ticket" });
     return;
   }
-  // Atomically delete ticket immediately to enforce single-use
-  await redis.del(ticketKey);
+  // Grace expiry prevents race condition with React StrictMode double invocation
+  await redis.expire(ticketKey, 10);
 
   try {
     const payload = JSON.parse(data) as { accessToken: string; refreshToken: string; userId: string };
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        isEmailVerified: true,
+      },
+    });
+
     res.json({
       success: true,
       token: payload.accessToken,
       accessToken: payload.accessToken,
       refreshToken: payload.refreshToken,
       userId: payload.userId,
+      user: user
+        ? {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            firstname: user.firstName,
+            lastname: user.lastName,
+            role: user.role,
+            isEmailVerified: user.isEmailVerified,
+            isverified: user.isEmailVerified,
+          }
+        : undefined,
     });
   } catch {
     res.status(500).json({ success: false, message: "Corrupted ticket payload" });

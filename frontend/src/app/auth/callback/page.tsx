@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authService } from '@/lib/auth';
 import toast from 'react-hot-toast';
@@ -9,6 +9,7 @@ function CallbackContent() {
     const router = useRouter();
     const params = useSearchParams();
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+    const processedRef = useRef(false);
 
     useEffect(() => {
         const ticket = params.get('ticket');
@@ -22,24 +23,40 @@ function CallbackContent() {
             return;
         }
 
-        const handleSuccess = () => {
-            authService.getProfile()
-                .then(user => {
-                    setStatus('success');
-                    toast.success(`Welcome, ${user?.firstname || 'back'}! 🎉`);
-                    setTimeout(() => router.push('/shop'), 1200);
-                })
-                .catch(() => {
-                    setStatus('error');
-                    toast.error('Could not load profile. Please try again.');
-                    setTimeout(() => router.push('/login'), 2000);
-                });
+        if (!ticket && !token) {
+            setStatus('error');
+            router.push('/login');
+            return;
+        }
+
+        // Prevent double execution in React StrictMode
+        if (processedRef.current) return;
+        processedRef.current = true;
+
+        const handleSuccess = (user?: any) => {
+            setStatus('success');
+            const name = user?.firstname || user?.firstName || 'back';
+            toast.success(`Welcome, ${name}! 🎉`);
+            setTimeout(() => {
+                const redirect = localStorage.getItem('auth_redirect') || '/shop';
+                localStorage.removeItem('auth_redirect');
+                router.push(redirect);
+            }, 1000);
         };
 
         if (ticket) {
             authService.exchangeOAuthTicket(ticket)
-                .then(() => handleSuccess())
-                .catch(() => {
+                .then((res) => {
+                    handleSuccess(res?.user);
+                })
+                .catch((err) => {
+                    console.error('OAuth ticket exchange failed:', err);
+                    // Check if token was already set by a parallel request
+                    const existingToken = localStorage.getItem('token');
+                    if (existingToken) {
+                        handleSuccess();
+                        return;
+                    }
                     setStatus('error');
                     toast.error('OAuth ticket expired or already used.');
                     setTimeout(() => router.push('/login'), 2000);
@@ -47,9 +64,6 @@ function CallbackContent() {
         } else if (token) {
             localStorage.setItem('token', token);
             handleSuccess();
-        } else {
-            setStatus('error');
-            router.push('/login');
         }
     }, [params, router]);
 
