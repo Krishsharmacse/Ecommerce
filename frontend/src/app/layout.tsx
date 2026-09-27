@@ -13,6 +13,15 @@ export const metadata: Metadata = {
     description: 'Secure Multi-Vendor E-Commerce Platform',
     type: 'website',
   },
+  icons: {
+    icon: [
+      { url: '/icon.png' },
+      { url: '/favicon.ico' },
+    ],
+    apple: [
+      { url: '/apple-icon.png' },
+    ],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
