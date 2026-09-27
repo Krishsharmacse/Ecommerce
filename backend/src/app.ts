@@ -27,7 +27,7 @@ app.use(requestId);
 
 // ─── Security headers ──────────────────────────────────────────────────────────
 app.use(
-  helmet({
+  (helmet as any)({
     // API-only server: no need to serve frames or scripts
     contentSecurityPolicy: {
       directives: {
