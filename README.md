@@ -145,3 +145,6 @@ const ws = new WebSocket(`ws://localhost:5000/ws?token=${accessToken}`);
 | `payment.failed`   | `{ orderId, reason }` | Dispatched when payment authorization fails. |
 | `notification.new` | `{ id, title, message, type, createdAt }` | Dispatched by `notification.worker.ts` on new notification. |
 | `shipment.updated` | `{ orderId, trackingNumber, status }` | Dispatched on shipping status updates. |
+Service	Production URL
+Frontend	https://frontend-virid-five-55.vercel.app
+Backend API	https://backend-three-indol-21.vercel.app
