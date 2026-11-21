@@ -6,8 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import {
-    ShoppingBag, MapPin, Package, Zap, ShieldCheck, X,
-    Trash2, Plus, Minus, ArrowRight, Lock, Check, Clock
+    ShoppingBag, MapPin, Package, Zap, ShieldCheck, X, ArrowRight
 } from 'lucide-react';
 
 interface CartItem {

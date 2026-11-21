@@ -27,7 +27,8 @@ export default function IncomeGraph({ trend = [], totalRevenue = 0 }: IncomeGrap
     });
 
     const maxRevenue = Math.max(...displayData.map(d => d.revenue), 1000);
-    const totalPeriodRevenue = displayData.reduce((acc, d) => acc + d.revenue, 0);
+    const computedRevenue = displayData.reduce((acc, d) => acc + d.revenue, 0);
+    const totalPeriodRevenue = totalRevenue > 0 ? totalRevenue : computedRevenue;
     const totalPeriodOrders = displayData.reduce((acc, d) => acc + d.orders, 0);
     const avgDailyRevenue = totalPeriodRevenue / displayData.length;
 

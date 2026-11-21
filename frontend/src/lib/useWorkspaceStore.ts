@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 export interface WorkspacePrompt {
   id: string;
@@ -257,7 +257,7 @@ const storeInstance = new Store();
 export function useWorkspaceStore<T>(selector: (state: WorkspaceState) => T): T {
   const [, setTick] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     return storeInstance.subscribe(() => {
       setTick((t) => t + 1);
     });

@@ -1,12 +1,11 @@
 'use client';
 import { useEffect, useState, useRef, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { authService } from '@/lib/auth';
+import { useSearchParams } from 'next/navigation';
+import { authService, User } from '@/lib/auth';
 import toast from 'react-hot-toast';
 
 // Handles the redirect from backend after Google OAuth
 function CallbackContent() {
-    const router = useRouter();
     const params = useSearchParams();
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
     const processedRef = useRef(false);
@@ -18,10 +17,12 @@ function CallbackContent() {
         const error = params.get('error') || urlParams?.get('error');
 
         if (error) {
-            setStatus('error');
-            toast.error('Google sign-in failed. Please try again.');
-            setTimeout(() => { window.location.href = '/login'; }, 1500);
-            return;
+            const timer = setTimeout(() => {
+                setStatus('error');
+                toast.error('Google sign-in failed. Please try again.');
+                setTimeout(() => { window.location.href = '/login'; }, 1500);
+            }, 0);
+            return () => clearTimeout(timer);
         }
 
         if (!ticket && !token) {
@@ -39,9 +40,9 @@ function CallbackContent() {
         if (processedRef.current) return;
         processedRef.current = true;
 
-        const handleSuccess = (user?: any) => {
+        const handleSuccess = (user?: Partial<User> | null) => {
             setStatus('success');
-            const name = user?.firstname || user?.firstName || 'back';
+            const name = user?.firstname || 'back';
             toast.success(`Welcome, ${name}! 🎉`);
             const redirect = localStorage.getItem('auth_redirect') || '/shop';
             localStorage.removeItem('auth_redirect');
@@ -70,7 +71,7 @@ function CallbackContent() {
             localStorage.setItem('token', token);
             handleSuccess();
         }
-    }, [params, router]);
+    }, [params]);
 
     return (
         <div className="auth-page">

@@ -20,9 +20,19 @@ const GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
 const STATE_TTL_SECS     = 300; // 5 minutes
 
 function getRedirectUri(req: Request): string {
-  if (env.GOOGLE_REDIRECT_URI) return env.GOOGLE_REDIRECT_URI;
-  const host     = req.get("host") ?? `localhost:${env.PORT}`;
-  const protocol = req.protocol ?? "http";
+  const host = req.get("host") ?? `localhost:${env.PORT}`;
+  const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
+
+  if (isLocal) {
+    return env.GOOGLE_REDIRECT_URI || `http://${host}${env.API_PREFIX}/auth/google/callback`;
+  }
+
+  // Running in production (Vercel):
+  // Never return a localhost redirect URI when serving live production traffic
+  if (env.GOOGLE_REDIRECT_URI && !env.GOOGLE_REDIRECT_URI.includes("localhost")) {
+    return env.GOOGLE_REDIRECT_URI;
+  }
+  const protocol = req.protocol === "http" && !host.includes("vercel.app") ? "http" : "https";
   return `${protocol}://${host}${env.API_PREFIX}/auth/google/callback`;
 }
 

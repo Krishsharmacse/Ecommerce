@@ -40,6 +40,7 @@ function addToCartLocal(product: Product): boolean {
 export default function ProductCard({ product, onEdit, onDelete, isAdmin }: ProductCardProps) {
     const [adding, setAdding] = useState(false);
     const [isWishlisted, setIsWishlisted] = useState(false);
+    const [imageError, setImageError] = useState(false);
 
     const displayName = product.name || product.productName || 'Product';
     const isInStock = (product.stock ?? 0) > 0;
@@ -100,24 +101,22 @@ export default function ProductCard({ product, onEdit, onDelete, isAdmin }: Prod
     };
 
     return (
-        <article className="product-card group relative flex flex-col"
+        <article className="product-card group relative flex flex-col h-full rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
             style={{
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-xl)',
-                overflow: 'hidden',
-                transition: 'border-color var(--dur-base), box-shadow var(--dur-base), transform var(--dur-base)',
             }}>
 
-            {/* Image Container */}
-            <div className="product-card__media relative w-full overflow-hidden flex-shrink-0"
-                style={{ aspectRatio: '4/3', background: 'var(--surface-sunken)' }}>
+            {/* Image Container — Standardized 1:1 Aspect Ratio */}
+            <div className="product-card__media relative w-full aspect-square overflow-hidden flex-shrink-0"
+                style={{ background: 'var(--surface-sunken)' }}>
                 <Link href={`/shop/${product._id}`} className="block w-full h-full" tabIndex={-1} aria-hidden="true">
-                    {imageUrl ? (
+                    {imageUrl && !imageError ? (
                         <img
                             src={imageUrl}
                             alt={displayName}
                             loading="lazy"
+                            onError={() => setImageError(true)}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                     ) : (
@@ -131,12 +130,12 @@ export default function ProductCard({ product, onEdit, onDelete, isAdmin }: Prod
                 {/* Stock Badge */}
                 <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
                     {!isInStock ? (
-                        <span className="badge badge--neutral text-[10px]">Out of Stock</span>
+                        <span className="badge badge--neutral text-[10px] shadow-sm">Out of Stock</span>
                     ) : product.stock <= 5 ? (
-                        <span className="badge badge--warning text-[10px]">Only {product.stock} left</span>
+                        <span className="badge badge--warning text-[10px] shadow-sm">Only {product.stock} left</span>
                     ) : null}
                     {hasDiscount && (
-                        <span className="badge badge--success text-[10px]">{discountPercent}% off</span>
+                        <span className="badge badge--success text-[10px] shadow-sm">{discountPercent}% off</span>
                     )}
                 </div>
 
@@ -144,7 +143,7 @@ export default function ProductCard({ product, onEdit, onDelete, isAdmin }: Prod
                 <button type="button" onClick={toggleWishlist}
                     aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
                     aria-pressed={isWishlisted}
-                    className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center transition-all z-10 opacity-0 group-hover:opacity-100"
+                    className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center transition-all z-10 opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95 shadow-md"
                     style={{
                         background: 'rgba(0,0,0,0.55)',
                         backdropFilter: 'blur(8px)',
@@ -193,7 +192,7 @@ export default function ProductCard({ product, onEdit, onDelete, isAdmin }: Prod
                 <div>
                     {/* Category */}
                     {product.category && (
-                        <div className="text-[10px] font-semibold uppercase tracking-wider mb-1"
+                        <div className="text-[10px] font-bold uppercase tracking-wider mb-1"
                             style={{ color: 'var(--foreground-muted)' }}>
                             {product.category}
                         </div>
@@ -201,7 +200,7 @@ export default function ProductCard({ product, onEdit, onDelete, isAdmin }: Prod
 
                     {/* Product Name */}
                     <Link href={`/shop/${product._id}`}>
-                        <h3 className="text-sm font-semibold leading-snug line-clamp-2 hover:text-blue-400 transition-colors"
+                        <h3 className="text-sm font-semibold leading-snug line-clamp-2 hover:text-blue-500 transition-colors"
                             style={{ color: 'var(--foreground)' }}>
                             {displayName}
                         </h3>
@@ -227,7 +226,7 @@ export default function ProductCard({ product, onEdit, onDelete, isAdmin }: Prod
                 {/* Price section */}
                 <div className="pt-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                     <div className="flex items-baseline gap-2 flex-wrap">
-                        <span className="text-base font-bold" style={{ color: 'var(--foreground)' }}>
+                        <span className="text-base font-extrabold font-mono" style={{ color: 'var(--foreground)' }}>
                             ₹{product.price.toLocaleString('en-IN')}
                         </span>
                         {hasDiscount && (

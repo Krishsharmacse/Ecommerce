@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { oauthService } from '@/lib/auth';
 import toast from 'react-hot-toast';
-import { UserPlus, Mail, Rocket, Lock, ShieldCheck, Zap, ShoppingBag, Eye, EyeOff, Check, AlertTriangle } from 'lucide-react';
+import { UserPlus, Mail, Rocket, Lock, ShieldCheck, Zap, ShoppingBag } from 'lucide-react';
 
 const REQUIREMENTS = [
     { label: 'At least 8 characters', test: (p: string) => p.length >= 8 },

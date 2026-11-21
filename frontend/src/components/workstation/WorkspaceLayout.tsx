@@ -11,16 +11,9 @@ import {
   Search,
   FolderTree,
   History,
-  Activity,
-  Terminal,
-  ChevronDown,
-  Layers,
-  Sparkles,
-  Command,
   Database,
   ShoppingBag,
   ExternalLink,
-  Zap,
 } from "lucide-react";
 import Link from "next/link";
 

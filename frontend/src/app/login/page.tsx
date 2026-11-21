@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { oauthService } from '@/lib/auth';
 import toast from 'react-hot-toast';
-import { Lock, Shield, Zap, CreditCard, Sparkles, KeyRound, ShieldCheck, Mail } from 'lucide-react';
+import { Lock, Shield, Zap, CreditCard, Sparkles, KeyRound, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
     const router = useRouter();

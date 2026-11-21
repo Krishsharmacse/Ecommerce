@@ -6,13 +6,20 @@ import { shopService, Shop, ShopRequest } from '@/lib/shops';
 import { productService, Product } from '@/lib/products';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import {
-    Camera, Upload, Trash2, X, Plus, Edit2, Package, ShoppingBag,
-    Settings, LayoutDashboard, Check, AlertTriangle, Info, ArrowUpRight,
-    RefreshCw, Search
-} from 'lucide-react';
+import { Camera, Upload, Trash2, X } from 'lucide-react';
 
 type Tab = 'overview' | 'products' | 'orders' | 'shop';
+
+interface VendorOrder {
+    id: string;
+    customerName: string;
+    customerEmail?: string;
+    productName: string;
+    quantity: number;
+    subtotal: number;
+    createdAt: string;
+    status: string;
+}
 
 /* ─── Glassmorphism Vendor Portal ─── */
 export default function VendorDashboardPage() {
@@ -20,7 +27,7 @@ export default function VendorDashboardPage() {
     const [tab, setTab] = useState<Tab>('overview');
     const [shop, setShop] = useState<Shop | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
-    const [orders, setOrders] = useState<any[]>([]);
+    const [orders, setOrders] = useState<VendorOrder[]>([]);
     const [activeRequest, setActiveRequest] = useState<ShopRequest | null>(null);
     const [allRequests, setAllRequests] = useState<ShopRequest[]>([]);
     const [loading, setLoading] = useState(true);
@@ -72,8 +79,9 @@ export default function VendorDashboardPage() {
             await shopService.requestOpenShop(openForm);
             toast.success('Shop opening request submitted!');
             await loadWorkspace();
-        } catch (err: any) {
-            toast.error(err?.response?.data?.message || 'Failed to submit request');
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { message?: string } } };
+            toast.error(e?.response?.data?.message || 'Failed to submit request');
         } finally { setSubmittingOpenReq(false); }
     };
 
@@ -87,8 +95,9 @@ export default function VendorDashboardPage() {
             toast.success('Shop deletion request submitted.');
             setShowDeleteModal(false); setDeleteReason('');
             await loadWorkspace();
-        } catch (err: any) {
-            toast.error(err?.response?.data?.message || 'Failed to submit deletion request');
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { message?: string } } };
+            toast.error(e?.response?.data?.message || 'Failed to submit deletion request');
         } finally { setSubmittingDeleteReq(false); }
     };
 
@@ -97,7 +106,10 @@ export default function VendorDashboardPage() {
         try {
             await shopService.cancelShopRequest(requestId);
             toast.success('Request cancelled'); await loadWorkspace();
-        } catch (err: any) { toast.error(err?.response?.data?.message || 'Failed to cancel'); }
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { message?: string } } };
+            toast.error(e?.response?.data?.message || 'Failed to cancel');
+        }
     };
 
     const handleDeleteProduct = async (productId: string) => {
@@ -105,7 +117,10 @@ export default function VendorDashboardPage() {
         try {
             await productService.delete(productId);
             toast.success('Product removed'); await loadWorkspace();
-        } catch (err: any) { toast.error(err?.response?.data?.message || 'Failed to delete'); }
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { message?: string } } };
+            toast.error(e?.response?.data?.message || 'Failed to delete');
+        }
     };
 
     if (loading) {
@@ -136,7 +151,7 @@ export default function VendorDashboardPage() {
         { id: 'shop', icon: '⚙️', label: 'Store Settings' },
     ];
 
-    const totalRevenue = orders.reduce((s: number, o: any) => s + (o.subtotal || 0), 0);
+    const totalRevenue = orders.reduce((s: number, o: VendorOrder) => s + (o.subtotal || 0), 0);
     const lowStockCount = products.filter(p => p.stock > 0 && p.stock <= 5).length;
 
     return (
@@ -569,7 +584,7 @@ export default function VendorDashboardPage() {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {orders.slice(0, 5).map((o: any) => (
+                                                            {orders.slice(0, 5).map((o: VendorOrder) => (
                                                                 <tr key={o.id}>
                                                                     <td className="mono cyan">{o.id?.slice(0, 8)}...</td>
                                                                     <td style={{ fontWeight: 600, color: '#f8fafc' }}>{o.customerName}</td>
@@ -687,7 +702,7 @@ export default function VendorDashboardPage() {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {orders.map((o: any) => (
+                                                            {orders.map((o: VendorOrder) => (
                                                                 <tr key={o.id}>
                                                                     <td className="mono cyan">{o.id?.slice(0, 8)}...</td>
                                                                     <td style={{ fontWeight: 600, color: '#f8fafc' }}>{o.customerName}</td>
@@ -834,8 +849,9 @@ function ProductModal({ product, onClose, onSave }: { product: Product | null; o
             setPreviewUrl(url);
             setForm(f => ({ ...f, imageUrl: url }));
             toast.success('Image uploaded!');
-        } catch (err: any) {
-            toast.error(err?.response?.data?.message || 'Upload failed');
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { message?: string } } };
+            toast.error(e?.response?.data?.message || 'Upload failed');
         } finally {
             setUploading(false);
         }
@@ -928,8 +944,9 @@ function ProductModal({ product, onClose, onSave }: { product: Product | null; o
                 toast.success('Product added to catalog!');
             }
             onSave();
-        } catch (err: any) {
-            toast.error(err?.response?.data?.message || 'Failed to save product');
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { message?: string } } };
+            toast.error(e?.response?.data?.message || 'Failed to save product');
         } finally { setLoading(false); }
     };
 

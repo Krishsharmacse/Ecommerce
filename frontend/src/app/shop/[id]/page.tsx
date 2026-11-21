@@ -6,7 +6,7 @@ import { productService, Product } from '@/lib/products';
 import toast from 'react-hot-toast';
 import {
     Heart, ShoppingBag, Zap, Check, Tag, MapPin, ShieldCheck,
-    Award, Star, Truck, ArrowRight, Package, Clock
+    Award, Star, Truck, ArrowRight, Package
 } from 'lucide-react';
 
 function addToCartDirect(product: Product, quantity: number): boolean {

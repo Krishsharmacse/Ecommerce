@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -81,7 +81,7 @@ export default function CustomerDashboardPage() {
         }
     }, [authStatus, isLoggedIn, router]);
 
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         setLoadingData(true);
         try {
             const [ordersRes, addrRes] = await Promise.all([
@@ -103,13 +103,13 @@ export default function CustomerDashboardPage() {
         } finally {
             setLoadingData(false);
         }
-    };
+    }, [user]);
 
     useEffect(() => {
         if (isLoggedIn) {
-            loadData();
+            void loadData();
         }
-    }, [isLoggedIn]);
+    }, [isLoggedIn, loadData]);
 
     const handleCancelOrder = async (orderId: string) => {
         if (!confirm('Are you sure you want to cancel this order? Stock will be restored.')) return;

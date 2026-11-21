@@ -12,7 +12,6 @@ import {
   FileText,
   AlertTriangle,
   Loader2,
-  Zap,
 } from "lucide-react";
 
 interface StreamViewerProps {

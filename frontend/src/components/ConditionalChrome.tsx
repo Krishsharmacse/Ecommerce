@@ -3,6 +3,7 @@
 import React from "react";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import FloatingAIAssistant from "@/components/FloatingAIAssistant";
 
 export default function ConditionalChrome({
   children,
@@ -11,7 +12,7 @@ export default function ConditionalChrome({
 }) {
   const pathname = usePathname();
   const isWorkspace = pathname?.startsWith("/workspace");
-  const isAdminDashboard = pathname?.startsWith("/dashboard/admin");
+  const isAdminDashboard = pathname?.startsWith("/dashboard/admin") || pathname?.startsWith("/admin");
   const isVendorDashboard = pathname?.startsWith("/dashboard/vendor");
 
   if (isWorkspace || isAdminDashboard || isVendorDashboard) {
@@ -22,6 +23,7 @@ export default function ConditionalChrome({
     <>
       <Navbar />
       <main>{children}</main>
+      <FloatingAIAssistant />
     </>
   );
 }

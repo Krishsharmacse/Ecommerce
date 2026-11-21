@@ -1,15 +1,49 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { shopService, ShopRequest } from '@/lib/shops';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import IncomeGraph from '@/components/admin/IncomeGraph';
+import IncomeGraph, { IncomeTrendItem } from '@/components/admin/IncomeGraph';
 
 type Tab = 'overview' | 'requests' | 'shops' | 'users';
 type RequestSubTab = 'opening' | 'deletion';
+
+interface PlatformTopShop {
+    _id?: string;
+    id?: string;
+    name: string;
+    category?: string;
+    ownerId?: { firstname?: string; email?: string };
+    totalRevenue?: number;
+    totalOrders?: number;
+    status?: string;
+}
+
+interface PlatformStats {
+    totalRevenue?: number;
+    totalOrders?: number;
+    totalProducts?: number;
+    totalShops?: number;
+    approvedShops?: number;
+    pendingShops?: number;
+    topShops?: PlatformTopShop[];
+    chartData?: Array<{ date: string; revenue: number }>;
+    salesTrend?: Array<{ date: string; label: string; revenue: number; orders: number }>;
+    incomeTrend?: IncomeTrendItem[];
+    [key: string]: unknown;
+}
+
+interface UserStats {
+    users?: {
+        total?: number;
+        vendors?: number;
+        customers?: number;
+        admins?: number;
+    };
+}
 
 interface UserRow {
     _id: string;
@@ -51,8 +85,8 @@ export default function AdminDashboardPage() {
     const [requests, setRequests] = useState<ShopRequest[]>([]);
     const [shops, setShops] = useState<ShopRow[]>([]);
     const [users, setUsers] = useState<UserRow[]>([]);
-    const [platformStats, setPlatformStats] = useState<any>(null);
-    const [userStats, setUserStats] = useState<any>(null);
+    const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null);
+    const [userStats, setUserStats] = useState<UserStats | null>(null);
     const [loading, setLoading] = useState(true);
 
     // Filters & Search
@@ -66,7 +100,7 @@ export default function AdminDashboardPage() {
     const [adminNote, setAdminNote] = useState('');
     const [processingReview, setProcessingReview] = useState(false);
 
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         setLoading(true);
         try {
             const results = await Promise.allSettled([
@@ -97,11 +131,11 @@ export default function AdminDashboardPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [userFilter, shopFilter]);
 
     useEffect(() => {
-        loadData();
-    }, [userFilter, shopFilter]);
+        void loadData();
+    }, [loadData]);
 
     // Review Request (Approve or Reject)
     const handleReviewSubmit = async (e: React.FormEvent) => {
@@ -118,8 +152,9 @@ export default function AdminDashboardPage() {
             setReviewModalReq(null);
             setAdminNote('');
             await loadData();
-        } catch (err: any) {
-            toast.error(err?.response?.data?.message || 'Failed to review request');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error(error?.response?.data?.message || 'Failed to review request');
         } finally {
             setProcessingReview(false);
         }
@@ -134,8 +169,9 @@ export default function AdminDashboardPage() {
             await api.post('/users/change-role', { userId: targetUserId, role: nextRole });
             toast.success(`Role updated: ${userName} is now ${nextRole}`);
             await loadData();
-        } catch (err: any) {
-            toast.error(err?.response?.data?.message || 'Failed to change role');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error(error?.response?.data?.message || 'Failed to change role');
         }
     };
 
@@ -145,8 +181,9 @@ export default function AdminDashboardPage() {
             await shopService.updateStatus(shopId, status);
             toast.success(`Shop status updated to ${status}`);
             await loadData();
-        } catch (err: any) {
-            toast.error(err?.response?.data?.message || 'Failed to update shop status');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error(error?.response?.data?.message || 'Failed to update shop status');
         }
     };
 
@@ -485,7 +522,7 @@ export default function AdminDashboardPage() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-zinc-800/60">
-                                                {platformStats.topShops.map((s: any) => (
+                                                {platformStats.topShops.map((s: PlatformTopShop) => (
                                                     <tr key={s._id || s.name} className="hover:bg-zinc-800/30 transition-colors">
                                                         <td className="py-3.5 px-3 font-bold text-white flex items-center gap-2">
                                                             <span>🏪</span> {s.name}
@@ -499,7 +536,7 @@ export default function AdminDashboardPage() {
                                                             {s.ownerId?.firstname} <span className="text-zinc-400 text-[11px]">({s.ownerId?.email})</span>
                                                         </td>
                                                         <td className="py-3.5 px-3 font-mono font-bold text-emerald-400">
-                                                            ₹{s.totalRevenue.toFixed(2)}
+                                                            ₹{(s.totalRevenue ?? 0).toFixed(2)}
                                                         </td>
                                                         <td className="py-3.5 px-3">
                                                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">

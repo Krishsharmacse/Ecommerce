@@ -5,7 +5,6 @@ import { useWorkspaceStore } from "@/lib/useWorkspaceStore";
 import {
   Play,
   RotateCcw,
-  Sparkles,
   Layers,
   Copy,
   Check,

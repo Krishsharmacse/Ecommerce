@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { productService, Product } from '@/lib/products';
 import ProductCard from '@/components/ProductCard';
-import { SlidersHorizontal, X, ChevronLeft, ChevronRight, Search, RotateCcw, Star } from 'lucide-react';
+import { SlidersHorizontal, X, ChevronLeft, ChevronRight, Search, RotateCcw } from 'lucide-react';
 
 const SORT_OPTIONS = [
   { value: 'popularity', label: 'Popularity' },

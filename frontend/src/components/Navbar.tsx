@@ -7,8 +7,7 @@ import { productService, Product } from '@/lib/products';
 import toast from 'react-hot-toast';
 import {
   Search, ShoppingBag, Heart, User, ChevronDown, LogOut,
-  Package, MapPin, Settings, Store, LayoutDashboard, Menu, X,
-  Zap, Truck, ShieldCheck, RefreshCcw, BadgeCheck, Bell,
+  Package, Store, LayoutDashboard, Menu, X,
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -58,7 +57,13 @@ export default function Navbar() {
   }, []);
 
   // Close mobile menu on route change
-  useEffect(() => { setMenuOpen(false); setDropdownOpen(false); }, [pathname]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMenuOpen(false);
+      setDropdownOpen(false);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   // Sync cart & wishlist counts
   useEffect(() => {
@@ -152,7 +157,7 @@ export default function Navbar() {
               onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
               placeholder="Search products, brands and categories..."
               aria-label="Search products"
-              className="w-full h-10 pl-9 pr-20 rounded-lg text-sm outline-none transition-all"
+              className="w-full h-9.5 pl-9 pr-20 rounded-xl text-xs md:text-sm font-medium outline-none transition-all focus:ring-2 focus:ring-blue-500/25 focus:border-blue-500"
               style={{
                 background: 'var(--surface-elevated)',
                 border: '1px solid var(--border)',
@@ -160,7 +165,7 @@ export default function Navbar() {
               }}
             />
             <button type="submit"
-              className="absolute right-1.5 px-3 h-7 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-md transition-colors"
+              className="absolute right-1 px-3 h-7 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95"
               aria-label="Submit search">
               Search
             </button>
@@ -321,13 +326,13 @@ export default function Navbar() {
             /* Guest: Login + Register */
             <div className="flex items-center gap-2">
               <Link href={`/login?redirect=${encodeURIComponent(pathname)}`}
-                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors"
+                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs md:text-sm font-bold shadow-sm shadow-blue-500/25 transition-all"
                 aria-label="Sign in to your account">
                 Sign In
               </Link>
               <Link href="/register"
-                className="hidden md:inline px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors"
-                style={{ color: 'var(--foreground)', border: '1px solid var(--border)' }}
+                className="hidden md:inline px-3.5 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all hover:bg-[var(--surface-elevated)] border border-[var(--border)] active:scale-95"
+                style={{ color: 'var(--foreground)' }}
                 aria-label="Create an account">
                 Register
               </Link>
@@ -337,7 +342,7 @@ export default function Navbar() {
           {/* Wishlist — only shown when logged in */}
           {isLoggedIn && (
             <Link href="/dashboard/customer?tab=wishlist"
-              className="relative p-2 rounded-lg hover:bg-[var(--surface-elevated)] transition-colors hidden sm:block"
+              className="relative p-2 rounded-xl hover:bg-[var(--surface-elevated)] transition-colors hidden sm:block"
               aria-label={`Wishlist${wishlistCount > 0 ? `, ${wishlistCount} items` : ''}`}>
               <Heart className="w-5 h-5" style={{ color: 'var(--foreground-secondary)' }} />
               {wishlistCount > 0 && (
@@ -350,24 +355,24 @@ export default function Navbar() {
 
           {/* Cart — always shown */}
           <Link href="/cart"
-            className="relative flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-[var(--surface-elevated)] transition-colors"
+            className="relative flex items-center gap-2 p-2 rounded-xl hover:bg-[var(--surface-elevated)] transition-colors"
             aria-label={`Shopping cart${cartCount > 0 ? `, ${cartCount} items` : ''}`}>
-            <div className="relative">
+            <div className="relative flex items-center justify-center">
               <ShoppingBag className="w-5 h-5" style={{ color: 'var(--foreground-secondary)' }} />
               {cartCount > 0 && (
-                <span className={`absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-blue-600 text-white text-[9px] font-extrabold flex items-center justify-center transition-transform ${cartBump ? 'scale-125' : 'scale-100'}`}>
+                <span className={`absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-blue-600 text-white text-[9px] font-extrabold flex items-center justify-center ring-2 ring-[var(--surface)] transition-transform ${cartBump ? 'scale-125' : 'scale-100'}`}>
                   {cartCount}
                 </span>
               )}
             </div>
-            <span className="hidden lg:block text-xs font-semibold" style={{ color: 'var(--foreground)' }}>
+            <span className="hidden lg:block text-xs font-bold" style={{ color: 'var(--foreground)' }}>
               Cart
             </span>
           </Link>
 
           {/* Mobile hamburger */}
           <button type="button" onClick={() => setMenuOpen(m => !m)}
-            className="p-2 rounded-lg sm:hidden hover:bg-[var(--surface-elevated)] transition-colors"
+            className="p-2 rounded-xl sm:hidden hover:bg-[var(--surface-elevated)] transition-colors"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}>
             {menuOpen
@@ -380,17 +385,17 @@ export default function Navbar() {
 
       {/* ── Category Ribbon ── */}
       <div className="hidden md:block" style={{ background: 'var(--surface-elevated)', borderTop: '1px solid var(--border-subtle)' }}>
-        <div className="container mx-auto px-4 flex items-center gap-6 h-9 overflow-x-auto scrollbar-none">
+        <div className="container mx-auto px-4 flex items-center gap-6 h-10 overflow-x-auto scrollbar-none">
           {CATEGORIES.map(cat => {
             const isActive = pathname === cat.href || (cat.href !== '/shop' && pathname.startsWith(cat.href.split('?')[0]));
             return (
               <Link key={cat.label} href={cat.href}
-                className={`whitespace-nowrap text-xs font-medium transition-colors py-1 border-b-2 flex-shrink-0 ${
+                className={`whitespace-nowrap text-xs font-medium transition-all py-1.5 border-b-2 flex-shrink-0 ${
                   isActive
-                    ? 'text-blue-500 border-blue-500 font-semibold'
+                    ? 'text-blue-500 border-blue-500 font-bold'
                     : cat.highlight
-                      ? 'text-amber-400 border-transparent hover:text-amber-300'
-                      : 'border-transparent hover:text-blue-400'
+                      ? 'text-amber-400 border-transparent hover:text-amber-300 hover:border-amber-400/50'
+                      : 'border-transparent hover:text-blue-400 hover:border-blue-400/50'
                 }`}
                 style={{ color: isActive ? '#3b82f6' : cat.highlight ? '#f59e0b' : 'var(--foreground-secondary)' }}>
                 {cat.label}
